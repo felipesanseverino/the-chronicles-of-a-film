@@ -181,10 +181,10 @@
 
   .series-item {
     display: grid;
-    grid-template-columns: 6rem 1fr 12rem 4rem;
+    grid-template-columns: auto 1fr 12rem 4rem;
     align-items: center;
     gap: 2rem;
-    padding: 2rem 0;
+    padding: 1.5rem 0;
     border-bottom: 1px solid var(--border);
     cursor: crosshair;
     text-decoration: none;
@@ -208,19 +208,21 @@
   .series-item > * { position: relative; z-index: 1; }
 
   .series-thumb {
-    width: 5.5rem;
-    height: 3.5rem;
+    height: 5rem;
+    width: auto;
+    max-width: 10rem;
     object-fit: cover;
     filter: grayscale(30%);
     transition: filter 0.4s;
     display: block;
+    flex-shrink: 0;
   }
 
   .series-item:hover .series-thumb { filter: grayscale(0%); }
 
   .series-thumb-placeholder {
-    width: 5.5rem;
-    height: 3.5rem;
+    width: 7.5rem;
+    height: 5rem;
     background: var(--surface);
     border: 1px solid var(--border);
     display: flex;
@@ -310,7 +312,8 @@
     .scroll-hint { display: none; }
     #archives { padding: 4rem 1.5rem; }
     .section-header { margin-bottom: 2rem; }
-    .series-item { grid-template-columns: 4rem 1fr 2rem; gap: 1rem; }
+    .series-item { grid-template-columns: auto 1fr 2rem; gap: 1rem; }
+    .series-thumb { height: 3.5rem; max-width: 7rem; }
     .series-location { display: none; }
     .series-name { font-size: 1.2rem; }
     #about { grid-template-columns: 1fr; gap: 1.5rem; padding: 4rem 1.5rem; }
@@ -400,7 +403,7 @@
   document.getElementById('series-count').textContent = `${series.length} series`;
 
   series.forEach((s, i) => {
-    const thumbUrl = `${CLOUDINARY_BASE}/f_auto,q_auto,w_400,c_fill,ar_3:2/${s.folder}/${s.photos[0]}`;
+    const thumbUrl = `${CLOUDINARY_BASE}/f_auto,q_auto,h_200,c_limit/${s.folder}/${s.photos[0]}`;
     const item = document.createElement('a');
     item.className = 'series-item reveal';
     item.href = `series.html?s=${s.slug}`;
