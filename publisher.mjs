@@ -683,43 +683,116 @@ header {
 }
 
 /* ── STATUS BAR ── */
-.status-bar {
+/* ── BOTTOM BAR ── */
+.bottom-bar {
   border-top: 1px solid var(--border);
-  padding: 0 2rem;
-  height: 36px;
+  flex-shrink: 0;
+  background: var(--surface);
+}
+
+.bottom-progress {
+  height: 2px;
+  background: var(--border);
+  position: relative;
+}
+.bottom-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+  transition: width 0.25s ease;
+}
+.bottom-progress-fill.green { background: var(--green); }
+.bottom-progress-fill.red   { background: var(--red); }
+
+.bottom-inner {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  flex-shrink: 0;
+  padding: 0 2rem;
+  height: 44px;
+  gap: 0;
 }
 
-.status-dot {
-  width: 6px; height: 6px;
+/* stages */
+.stages {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  flex: 1;
+}
+
+.stage {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 1.2rem 0 0;
+  position: relative;
+}
+
+.stage:not(:last-child)::after {
+  content: '›';
+  color: var(--border);
+  font-size: 0.7rem;
+  margin-right: 1.2rem;
+}
+
+.stage-dot {
+  width: 5px; height: 5px;
   border-radius: 50%;
-  background: var(--muted);
+  background: var(--border);
   flex-shrink: 0;
+  transition: background 0.3s;
 }
-.status-dot.ok    { background: var(--green); }
-.status-dot.error { background: var(--red); }
-.status-dot.busy  { background: var(--accent); animation: pulse 1s ease-in-out infinite; }
-@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+.stage.done   .stage-dot { background: var(--green); }
+.stage.active .stage-dot { background: var(--accent); animation: pulse 1s ease-in-out infinite; }
+.stage.error  .stage-dot { background: var(--red); }
 
-.status-msg {
+.stage-label {
   font-family: var(--mono);
-  font-size: 0.52rem;
-  letter-spacing: 0.1em;
+  font-size: 0.5rem;
+  letter-spacing: 0.15em;
   color: var(--muted);
+  transition: color 0.3s;
+}
+.stage.done   .stage-label { color: var(--green); }
+.stage.active .stage-label { color: var(--white); }
+.stage.error  .stage-label { color: var(--red); }
+
+.stage-count {
+  font-family: var(--mono);
+  font-size: 0.48rem;
+  color: var(--muted);
+  min-width: 3rem;
+  transition: color 0.3s;
+}
+.stage.active .stage-count { color: var(--accent); }
+.stage.done   .stage-count { color: var(--green); }
+
+/* file label */
+.status-file {
+  font-family: var(--mono);
+  font-size: 0.48rem;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+  max-width: 260px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-left: auto;
+  padding-left: 1rem;
 }
 
 .status-link {
-  margin-left: auto;
   font-family: var(--mono);
-  font-size: 0.52rem;
+  font-size: 0.5rem;
   letter-spacing: 0.1em;
   color: var(--accent);
   text-decoration: none;
+  margin-left: 1.5rem;
+  white-space: nowrap;
 }
 .status-link:hover { text-decoration: underline; }
+
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
 
 /* ── EMPTY STATE ── */
 .empty-state {
@@ -781,10 +854,36 @@ header {
   </div>
 </div>
 
-<div class="status-bar">
-  <div class="status-dot" id="status-dot"></div>
-  <span class="status-msg" id="status-msg">ready</span>
-  <a class="status-link" id="status-link" href="#" target="_blank" style="display:none"></a>
+<div class="bottom-bar">
+  <div class="bottom-progress">
+    <div class="bottom-progress-fill" id="bar-fill"></div>
+  </div>
+  <div class="bottom-inner">
+    <div class="stages">
+      <div class="stage" id="stage-scan">
+        <div class="stage-dot"></div>
+        <span class="stage-label">scan</span>
+        <span class="stage-count" id="count-scan"></span>
+      </div>
+      <div class="stage" id="stage-compress">
+        <div class="stage-dot"></div>
+        <span class="stage-label">compress</span>
+        <span class="stage-count" id="count-compress"></span>
+      </div>
+      <div class="stage" id="stage-upload">
+        <div class="stage-dot"></div>
+        <span class="stage-label">upload</span>
+        <span class="stage-count" id="count-upload"></span>
+      </div>
+      <div class="stage" id="stage-deploy">
+        <div class="stage-dot"></div>
+        <span class="stage-label">deploy</span>
+        <span class="stage-count" id="count-deploy"></span>
+      </div>
+    </div>
+    <span class="status-file" id="status-file">ready</span>
+    <a class="status-link" id="status-link" href="#" target="_blank" style="display:none">↗ view live</a>
+  </div>
 </div>
 
 <script>
@@ -988,9 +1087,9 @@ function autoSlug() {
 async function scanFolder() {
   const folder = document.getElementById('f-folder').value.trim();
   if (!folder) return;
-  setStatus('busy', 'scanning folder…');
+  setStage('scan', 'active'); setFile('scanning folder…');
   const res = await fetch('/api/scan', { method: 'POST', body: JSON.stringify({ folder }) }).then(r => r.json());
-  if (res.error) { setStatus('error', res.error); return; }
+  if (res.error) { setStage('scan', 'error'); setStatus('error', res.error); return; }
   state.scanned    = res.files;
   state.scannedDir = res.dir;
   if (!state.hero && res.files.length) state.hero = res.files[0];
@@ -999,7 +1098,8 @@ async function scanFolder() {
   renderPhotoGrid(res.files, res.dir, area);
   // Unlock upload button
   document.getElementById('btn-upload').disabled = false;
-  setStatus('ok', \`\${res.files.length} photos found\`);
+  setStage('scan', 'done', res.files.length + ' files');
+  setBar(10); setFile(\`\${res.files.length} photos found\`);
 }
 
 // ── Photo grid ────────────────────────────────────────────────────────────────
@@ -1041,36 +1141,53 @@ async function startUpload() {
   const pw    = document.getElementById('progress-wrap');
   pw.classList.add('active');
   document.getElementById('btn-upload').disabled = true;
-  setStatus('busy', 'starting…');
+  resetStages();
+  setStage('scan', 'done', state.scanned.length + ' files');
+  setBar(10); setFile('starting…');
 
   // SSE
   const evs = new EventSource(\`/api/progress?id=\${jobId}\`);
   evs.onmessage = e => {
     const msg = JSON.parse(e.data);
     if (msg.type === 'phase') {
-      document.getElementById('progress-phase').textContent = msg.phase === 'compress' ? 'compressing…' : 'uploading to cloudinary…';
+      if (msg.phase === 'compress') {
+        setStage('compress', 'active');
+        setBar(15); setFile('compressing photos…');
+      } else {
+        setStage('compress', 'done', msg.total + ' files');
+        setStage('upload', 'active');
+        setBar(50); setFile('uploading to cloudinary…');
+      }
     }
     if (msg.type === 'progress') {
-      const pct = Math.round((msg.done / msg.total) * 100);
-      document.getElementById('progress-fill').style.width = pct + '%';
-      document.getElementById('progress-file').textContent = msg.file;
-      setStatus('busy', \`\${msg.phase} · \${msg.done}/\${msg.total}\`);
+      if (msg.phase === 'compress') {
+        const pct = 15 + Math.round((msg.done / msg.total) * 35);
+        setBar(pct); setFile(msg.file);
+        setStage('compress', 'active', \`\${msg.done}/\${msg.total}\`);
+      } else {
+        const pct = 50 + Math.round((msg.done / msg.total) * 40);
+        setBar(pct); setFile(msg.file);
+        setStage('upload', 'active', \`\${msg.done}/\${msg.total}\`);
+      }
+      document.getElementById('progress-fill').style.width =
+        Math.round((msg.done / msg.total) * 100) + '%';
     }
     if (msg.type === 'done') {
       evs.close();
       state.uploaded = msg.count;
+      setStage('compress', 'done'); setStage('upload', 'done', msg.count + ' photos');
+      setBar(90); setFile(\`\${msg.count} photos ready on cloudinary\`);
       document.getElementById('progress-fill').style.width = '100%';
       document.getElementById('progress-phase').textContent = 'done ✓';
-      document.getElementById('progress-file').textContent = \`\${msg.count} photos ready on cloudinary\`;
       document.getElementById('btn-upload').disabled = false;
       document.getElementById('btn-deploy').disabled = false;
       document.getElementById('deploy-hint').textContent = '';
-      setStatus('ok', \`\${msg.count} photos uploaded\`);
-      boot(); // refresh sidebar
+      boot();
     }
     if (msg.type === 'error') {
       evs.close();
       setStatus('error', msg.message);
+      setStage('upload', 'error');
       document.getElementById('btn-upload').disabled = false;
     }
   };
@@ -1090,34 +1207,59 @@ async function deployNow() {
   const desc  = document.getElementById('f-desc')?.value.trim();
   document.getElementById('btn-deploy').disabled = true;
 
+  setStage('deploy', 'active'); setBar(92); setFile('saving changes…');
+
   // Save metadata first (works even without uploading new photos)
   if (!state.isNew) {
-    setStatus('busy', 'saving changes…');
     const saved = await fetch('/api/save', {
       method: 'POST',
       body: JSON.stringify({ slug, title, meta, description: desc }),
     }).then(r => r.json());
-    if (saved.error) { setStatus('error', saved.error); document.getElementById('btn-deploy').disabled = false; return; }
+    if (saved.error) { setStage('deploy','error'); setStatus('error', saved.error); document.getElementById('btn-deploy').disabled = false; return; }
   }
 
-  setStatus('busy', 'pushing to github…');
+  setBar(96); setFile('pushing to github…');
   const res = await fetch('/api/deploy', {
     method: 'POST',
     body: JSON.stringify({ slug, title, count: state.uploaded, isNew: state.isNew }),
   }).then(r => r.json());
-  if (res.error) { setStatus('error', res.error); document.getElementById('btn-deploy').disabled = false; return; }
-  setStatus('ok', 'deployed — vercel is building');
+  if (res.error) { setStage('deploy','error'); setStatus('error', res.error); document.getElementById('btn-deploy').disabled = false; return; }
+
+  setStage('deploy', 'done'); setBar(100, 'green'); setFile('deployed — vercel is building');
   const sl = document.getElementById('status-link');
-  sl.href = res.url;
-  sl.textContent = '↗ view live';
-  sl.style.display = 'block';
+  sl.href = res.url; sl.style.display = 'block';
   document.getElementById('btn-deploy').disabled = false;
 }
 
-// ── Status ────────────────────────────────────────────────────────────────────
+// ── Stage / progress helpers ──────────────────────────────────────────────────
+function setStage(name, state, count = '') {
+  const el = document.getElementById('stage-' + name);
+  if (!el) return;
+  el.className = 'stage ' + state;
+  const c = document.getElementById('count-' + name);
+  if (c) c.textContent = count;
+}
+
+function setBar(pct, color = '') {
+  const fill = document.getElementById('bar-fill');
+  fill.style.width = pct + '%';
+  fill.className = 'bottom-progress-fill' + (color ? ' ' + color : '');
+}
+
+function setFile(msg) {
+  document.getElementById('status-file').textContent = msg;
+}
+
+function resetStages() {
+  ['scan','compress','upload','deploy'].forEach(s => setStage(s, ''));
+  setBar(0);
+  document.getElementById('status-link').style.display = 'none';
+}
+
+// kept for backward compat but now drives the richer bar too
 function setStatus(type, msg) {
-  document.getElementById('status-dot').className = 'status-dot ' + type;
-  document.getElementById('status-msg').textContent = msg;
+  setFile(msg);
+  if (type === 'error') setBar(100, 'red');
 }
 
 boot();
