@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Archives — the chronicles of a film</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Overpass+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  /* ── PAGE ── */
+  .page-header {
+    padding: 8rem 3rem 0;
+  }
+
+  .page-eyebrow {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1.5rem;
+  }
+
+  .page-title {
+    font-family: var(--serif);
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 400;
+    color: var(--white);
+    line-height: 1.05;
+    margin-bottom: 1rem;
+  }
+
+  .page-title em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  /* ── ARCHIVES ── */
+  #archives {
+    padding: 4rem 3rem 6rem;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 1.5rem;
+    margin-bottom: 0;
+  }
+
+  .section-title {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .section-count {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    color: var(--muted);
+  }
+
+  /* ── SERIES LIST ── */
+  .series-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .series-item {
+    display: grid;
+    grid-template-columns: 6rem 1fr 12rem 4rem;
+    align-items: center;
+    gap: 2rem;
+    padding: 2rem 0;
+    border-bottom: 1px solid var(--border);
+    cursor: crosshair;
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .series-item::before {
+    content: '';
+    position: absolute;
+    left: -100%;
+    top: 0; bottom: 0;
+    width: 100%;
+    background: var(--surface);
+    transition: left 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    z-index: 0;
+  }
+
+  .series-item:hover::before { left: 0; }
+  .series-item > * { position: relative; z-index: 1; }
+
+  .series-thumb {
+    width: 5.5rem;
+    height: 3.5rem;
+    object-fit: cover;
+    filter: grayscale(30%);
+    transition: filter 0.4s;
+    display: block;
+  }
+
+  .series-item:hover .series-thumb { filter: grayscale(0%); }
+
+  .series-thumb-placeholder {
+    width: 5.5rem;
+    height: 3.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .series-thumb-placeholder span {
+    font-family: var(--mono);
+    font-size: 0.5rem;
+    color: var(--border);
+    letter-spacing: 0.1em;
+  }
+
+  .series-name {
+    font-family: var(--serif);
+    font-size: 1.6rem;
+    font-weight: 400;
+    color: var(--white);
+    transition: color 0.3s;
+    letter-spacing: -0.01em;
+  }
+
+  .series-item:hover .series-name { color: var(--accent); }
+
+  .series-location {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .series-arrow {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--muted);
+    text-align: right;
+    transition: transform 0.3s, color 0.3s;
+  }
+
+  .series-item:hover .series-arrow {
+    transform: translateX(6px);
+    color: var(--accent);
+  }
+
+  /* ── MOBILE ── */
+  @media (max-width: 768px) {
+    .page-header { padding: 7rem 1.5rem 0; }
+    #archives { padding: 3rem 1.5rem 4rem; }
+    .series-item { grid-template-columns: 4rem 1fr 2rem; gap: 1rem; }
+    .series-location { display: none; }
+    .series-name { font-size: 1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo">tcf</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="archive.html" class="active">Archives</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <p class="page-eyebrow reveal">the chronicles of a film</p>
+  <h1 class="page-title reveal">
+    <em>Archives</em>
+  </h1>
+</div>
+
+<section id="archives">
+  <div class="section-header reveal">
+    <span class="section-title">All series</span>
+    <span class="section-count" id="series-count"></span>
+  </div>
+  <div class="series-list" id="series-list"></div>
+</section>
+
+<footer>
+  <span>the chronicles of a film · felipe martins</span>
+  <span>digital · 35mm · medium format</span>
+</footer>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true">
+  <div class="lightbox-inner">
+    <span class="lightbox-title"></span>
+    <button class="lightbox-close" aria-label="Close">Esc / close</button>
+    <button class="lightbox-nav lightbox-prev" aria-label="Previous">←</button>
+    <img class="lightbox-img" src="" alt="">
+    <button class="lightbox-nav lightbox-next" aria-label="Next">→</button>
+    <span class="lightbox-meta"></span>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+  const list = document.getElementById('series-list');
+  const countEl = document.getElementById('series-count');
+  countEl.textContent = `${series.length} series`;
+
+  series.forEach((s, i) => {
+    const thumbUrl = `${CLOUDINARY_BASE}/f_auto,q_auto,w_400,c_fill,ar_3:2/${s.folder}/${s.photos[0]}`;
+
+    const item = document.createElement('div');
+    item.className = 'series-item reveal';
+    item.style.transitionDelay = `${i * 0.04}s`;
+    item.innerHTML = `
+      <img class="series-thumb" src="${thumbUrl}" alt="${s.title}" loading="lazy">
+      <span class="series-name">${s.title}</span>
+      <span class="series-location">${s.meta}</span>
+      <span class="series-arrow">→</span>
+    `;
+    item.addEventListener('click', () => window._openLightbox(s, 0));
+    list.appendChild(item);
+  });
+</script>
+<script src="main.js"></script>
+</body>
+</html>
