@@ -107,8 +107,6 @@ const series = [
     description: "usually i’m not the one choosing where to go on holiday. i don’t like to plan; and that’s good, because it’s always a surprise, no expectations, just the here and now. but this time was different. i had to go. i had to take a photo of all 17 public toilets of the tokyo toilet project.\nmore info about the project here:  https://tokyotoilet.jp/en/",
     folder: "chronicles/tokyo-toilet",
     photos: [
-      "img_001.jpg",
-      "img_002.jpg",
     ]
   },
   {
@@ -117,8 +115,6 @@ const series = [
     meta: "Asia · 35mm",
     folder: "chronicles/south-korea",
     photos: [
-      "img_001.jpg",
-      "img_002.jpg",
     ]
   },
   {
@@ -127,8 +123,6 @@ const series = [
     meta: "Netherlands · Medium Format",
     folder: "chronicles/haarlem",
     photos: [
-      "img_001.jpg",
-      "img_002.jpg",
     ]
   },
   {
@@ -137,8 +131,6 @@ const series = [
     meta: "Europe · 35mm",
     folder: "chronicles/france",
     photos: [
-      "img_001.jpg",
-      "img_002.jpg",
     ]
   },
   {
@@ -147,8 +139,6 @@ const series = [
     meta: "Europe · 35mm",
     folder: "chronicles/italy",
     photos: [
-      "img_001.jpg",
-      "img_002.jpg",
     ]
   },
   {
@@ -157,8 +147,6 @@ const series = [
     meta: "Europe · Digital",
     folder: "chronicles/spain",
     photos: [
-      "img_001.jpg",
-      "img_002.jpg",
     ]
   },
   {
@@ -167,8 +155,6 @@ const series = [
     meta: "Netherlands · 35mm",
     folder: "chronicles/sail-amsterdam",
     photos: [
-      "img_001.jpg",
-      "img_002.jpg",
     ]
   },
   {
@@ -177,8 +163,6 @@ const series = [
     meta: "Europe · Medium Format",
     folder: "chronicles/slovenia",
     photos: [
-      "img_001.jpg",
-      "img_002.jpg",
     ]
   },
   {
@@ -187,8 +171,6 @@ const series = [
     meta: "Americas · Digital",
     folder: "chronicles/costa-rica",
     photos: [
-      "img_001.jpg",
-      "img_002.jpg",
     ]
   },
   {
@@ -197,8 +179,6 @@ const series = [
     meta: "Netherlands · 35mm",
     folder: "chronicles/amsterdam",
     photos: [
-      "img_001.jpg",
-      "img_002.jpg",
     ]
   },
   {
@@ -207,8 +187,6 @@ const series = [
     meta: "Various · Mixed",
     folder: "chronicles/miscellaneous",
     photos: [
-      "img_001.jpg",
-      "img_002.jpg",
     ]
   }
 ];

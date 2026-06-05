@@ -849,8 +849,9 @@ function renderForm(s) {
   const ar = document.getElementById('action-row');
   ar.style.display = 'flex';
 
-  // Existing series: deploy is available immediately (photos already on cloudinary)
-  const canDeployNow = !state.isNew && s && s.photos.length > 0;
+  // Existing series: deploy is available immediately only if photos look real (not img_001 placeholders)
+  const hasRealPhotos = s && s.photos.length > 0 && !s.photos[0].startsWith('img_');
+  const canDeployNow = !state.isNew && hasRealPhotos;
   document.getElementById('btn-deploy').disabled = !canDeployNow;
   document.getElementById('deploy-hint').textContent = canDeployNow ? '' : 'upload photos first';
 
@@ -927,13 +928,30 @@ function cloudPhotoCell(p, folder, BASE) {
   const s = state.series.find(x => x.slug === state.active);
   const f = (s && s.folder) ? s.folder : folder;
   return \`<div class="photo-cell \${state.hero === p ? 'hero' : ''}" id="cell-\${p}" title="\${p}">
-    <img src="\${BASE}/\${f}/\${p}" loading="lazy" alt="\${p}" onclick="setCloudHero('\${p}')">
+    <img src="\${BASE}/\${f}/\${p}" loading="lazy" alt="\${p}"
+      onclick="setCloudHero('\${p}')"
+      onerror="document.getElementById('cell-\${p}').style.display='none'; updateCloudCount()">
     <div class="photo-overlay">
       <div class="photo-filename">\${p}</div>
       <button class="btn-remove" onclick="removePhoto('\${p}')">× remove</button>
     </div>
     <div class="hero-badge">cover</div>
   </div>\`;
+}
+
+function updateCloudCount() {
+  const visible = document.querySelectorAll('#cloud-grid .photo-cell[style!="display: none;"]').length;
+  const all     = document.querySelectorAll('#cloud-grid .photo-cell').length;
+  const hidden  = all - visible;
+  const real    = all - hidden;
+  const el = document.getElementById('cloud-count');
+  if (!el) return;
+  if (real === 0) {
+    el.textContent = 'no photos uploaded yet — scan a folder below to add some';
+    document.getElementById('cloud-grid').style.display = 'none';
+  } else {
+    el.textContent = \`\${real} photos on cloudinary — hover to remove\`;
+  }
 }
 
 function setCloudHero(filename) {
