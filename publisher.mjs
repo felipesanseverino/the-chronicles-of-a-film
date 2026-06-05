@@ -124,6 +124,21 @@ async function route(req, res) {
     return res.end(JSON.stringify(readConfig()));
   }
 
+  // Save metadata only (no upload)
+  if (m === 'POST' && path === '/api/save') {
+    const { slug, title, meta, description } = await body(req);
+    const series = readConfig();
+    const idx = series.findIndex(s => s.slug === slug);
+    if (idx === -1) { res.writeHead(404); return res.end(JSON.stringify({ error: 'not found' })); }
+    if (title) series[idx].title = title;
+    if (meta)  series[idx].meta  = meta;
+    series[idx].description = description || '';
+    if (!series[idx].description) delete series[idx].description;
+    writeConfig(series);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ ok: true }));
+  }
+
   // Scan folder
   if (m === 'POST' && path === '/api/scan') {
     const { folder } = await body(req);
@@ -708,7 +723,7 @@ header {
       </div>
     </div>
     <div class="action-row" id="action-row" style="display:none">
-      <button class="btn primary" id="btn-upload" onclick="startUpload()">upload photos</button>
+      <button class="btn primary" id="btn-upload" onclick="startUpload()" disabled>upload photos</button>
       <button class="btn success" id="btn-deploy" onclick="deployNow()" disabled>deploy to vercel</button>
       <span id="deploy-hint" style="font-family:var(--mono);font-size:0.5rem;color:var(--muted);margin-left:0.5rem"></span>
     </div>
@@ -783,8 +798,10 @@ function renderForm(s) {
   const ar = document.getElementById('action-row');
   ar.style.display = 'flex';
 
-  document.getElementById('btn-deploy').disabled = true;
-  document.getElementById('deploy-hint').textContent = 'upload first';
+  // Existing series: deploy is available immediately (photos already on cloudinary)
+  const canDeployNow = !state.isNew && s && s.photos.length > 0;
+  document.getElementById('btn-deploy').disabled = !canDeployNow;
+  document.getElementById('deploy-hint').textContent = canDeployNow ? '' : 'upload photos first';
 
   mc.innerHTML = \`
     <div class="form-section">
@@ -796,7 +813,7 @@ function renderForm(s) {
         </div>
         <div class="field">
           <label>slug</label>
-          <input id="f-slug" type="text" value="\${s ? s.slug : ''}" placeholder="japan">
+          <input id="f-slug" type="text" value="\${s ? s.slug : ''}" placeholder="japan" \${!state.isNew ? 'readonly style="opacity:0.5"' : ''}>
         </div>
         <div class="field">
           <label>meta</label>
@@ -810,12 +827,23 @@ function renderForm(s) {
     </div>
 
     <div class="form-section">
-      <span class="section-label">photos</span>
-      <div class="folder-row">
-        <input class="folder-input" id="f-folder" type="text" placeholder="~/Documents/Photos/Japan/…" value="\${state.scannedDir}">
-        <button class="btn" onclick="scanFolder()">scan folder</button>
-      </div>
-      <div id="photo-area"></div>
+      <span class="section-label">\${canDeployNow ? 'current photos' : 'photos'}</span>
+      \${canDeployNow
+        ? \`<div id="photo-area"></div>
+           <div style="margin-top:1.2rem">
+             <span class="section-label" style="display:block;margin-bottom:0.5rem">add more photos</span>
+             <div class="folder-row">
+               <input class="folder-input" id="f-folder" type="text" placeholder="~/Documents/Photos/Japan/… (optional)" value="\${state.scannedDir}">
+               <button class="btn" onclick="scanFolder()">scan folder</button>
+             </div>
+             <div id="new-photo-area"></div>
+           </div>\`
+        : \`<div class="folder-row">
+             <input class="folder-input" id="f-folder" type="text" placeholder="~/Documents/Photos/Japan/…" value="\${state.scannedDir}">
+             <button class="btn" onclick="scanFolder()">scan folder</button>
+           </div>
+           <div id="photo-area"></div>\`
+      }
     </div>
 
     <div class="progress-wrap" id="progress-wrap">
@@ -825,7 +853,34 @@ function renderForm(s) {
     </div>
   \`;
 
+  // Show existing Cloudinary photos
+  if (canDeployNow && s.photos.length) renderCloudinaryPhotos(s);
   if (state.scanned.length) renderPhotoGrid(state.scanned, state.scannedDir);
+}
+
+// ── Current Cloudinary photos ─────────────────────────────────────────────────
+function renderCloudinaryPhotos(s) {
+  const area = document.getElementById('photo-area');
+  if (!area) return;
+  const BASE = 'https://res.cloudinary.com/dttbzi3he/image/upload/f_auto,q_auto,w_220,h_220,c_fill';
+  area.innerHTML = \`
+    <p class="photo-count">\${s.photos.length} photos on cloudinary — click to set cover</p>
+    <div class="photo-grid" id="cloud-grid">
+      \${s.photos.map(p => \`
+        <div class="photo-cell \${state.hero === p ? 'hero' : ''}" onclick="setCloudHero('\${p}')" title="\${p}">
+          <img src="\${BASE}/\${s.folder}/\${p}" loading="lazy" alt="\${p}">
+          <div class="hero-badge">cover</div>
+        </div>
+      \`).join('')}
+    </div>
+  \`;
+}
+
+function setCloudHero(filename) {
+  state.hero = filename;
+  document.querySelectorAll('#cloud-grid .photo-cell').forEach(el => {
+    el.classList.toggle('hero', el.title === filename);
+  });
 }
 
 function autoSlug() {
@@ -841,16 +896,20 @@ async function scanFolder() {
   setStatus('busy', 'scanning folder…');
   const res = await fetch('/api/scan', { method: 'POST', body: JSON.stringify({ folder }) }).then(r => r.json());
   if (res.error) { setStatus('error', res.error); return; }
-  state.scanned   = res.files;
+  state.scanned    = res.files;
   state.scannedDir = res.dir;
   if (!state.hero && res.files.length) state.hero = res.files[0];
-  renderPhotoGrid(res.files, res.dir);
+  // For existing series, new photos go in the secondary area
+  const area = document.getElementById('new-photo-area') || document.getElementById('photo-area');
+  renderPhotoGrid(res.files, res.dir, area);
+  // Unlock upload button
+  document.getElementById('btn-upload').disabled = false;
   setStatus('ok', \`\${res.files.length} photos found\`);
 }
 
 // ── Photo grid ────────────────────────────────────────────────────────────────
-function renderPhotoGrid(files, dir) {
-  const area = document.getElementById('photo-area');
+function renderPhotoGrid(files, dir, area) {
+  area = area || document.getElementById('photo-area');
   if (!area) return;
   area.innerHTML = \`
     <p class="photo-count">\${files.length} photos — click to set cover</p>
@@ -932,7 +991,20 @@ async function startUpload() {
 async function deployNow() {
   const slug  = document.getElementById('f-slug')?.value.trim();
   const title = document.getElementById('f-title')?.value.trim();
+  const meta  = document.getElementById('f-meta')?.value.trim();
+  const desc  = document.getElementById('f-desc')?.value.trim();
   document.getElementById('btn-deploy').disabled = true;
+
+  // Save metadata first (works even without uploading new photos)
+  if (!state.isNew) {
+    setStatus('busy', 'saving changes…');
+    const saved = await fetch('/api/save', {
+      method: 'POST',
+      body: JSON.stringify({ slug, title, meta, description: desc }),
+    }).then(r => r.json());
+    if (saved.error) { setStatus('error', saved.error); document.getElementById('btn-deploy').disabled = false; return; }
+  }
+
   setStatus('busy', 'pushing to github…');
   const res = await fetch('/api/deploy', {
     method: 'POST',
