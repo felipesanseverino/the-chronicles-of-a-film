@@ -124,6 +124,18 @@ async function route(req, res) {
     return res.end(JSON.stringify(readConfig()));
   }
 
+  // Remove a photo from a series
+  if (m === 'POST' && path === '/api/remove-photo') {
+    const { slug, filename } = await body(req);
+    const series = readConfig();
+    const idx = series.findIndex(s => s.slug === slug);
+    if (idx === -1) { res.writeHead(404); return res.end(JSON.stringify({ error: 'series not found' })); }
+    series[idx].photos = series[idx].photos.filter(p => p !== filename);
+    writeConfig(series);
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ ok: true, remaining: series[idx].photos.length }));
+  }
+
   // Save metadata only (no upload)
   if (m === 'POST' && path === '/api/save') {
     const { slug, title, meta, description } = await body(req);
@@ -586,6 +598,45 @@ header {
 }
 .photo-cell.hero .hero-badge { display: block; }
 
+.photo-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(8,8,8,0.7);
+  opacity: 0;
+  transition: opacity 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px;
+}
+.photo-cell:hover .photo-overlay { opacity: 1; }
+
+.photo-filename {
+  font-family: var(--mono);
+  font-size: 0.42rem;
+  letter-spacing: 0.05em;
+  color: rgba(229,210,182,0.7);
+  text-align: center;
+  word-break: break-all;
+  line-height: 1.4;
+}
+
+.btn-remove {
+  font-family: var(--mono);
+  font-size: 0.48rem;
+  letter-spacing: 0.1em;
+  color: var(--red);
+  background: none;
+  border: 1px solid var(--red);
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+.btn-remove:hover { background: var(--red); color: var(--bg); }
+
 .photo-count {
   font-family: var(--mono);
   font-size: 0.55rem;
@@ -864,16 +915,25 @@ function renderCloudinaryPhotos(s) {
   if (!area) return;
   const BASE = 'https://res.cloudinary.com/dttbzi3he/image/upload/f_auto,q_auto,w_220,h_220,c_fill';
   area.innerHTML = \`
-    <p class="photo-count">\${s.photos.length} photos on cloudinary — click to set cover</p>
+    <p class="photo-count" id="cloud-count">\${s.photos.length} photos on cloudinary — hover to remove</p>
     <div class="photo-grid" id="cloud-grid">
-      \${s.photos.map(p => \`
-        <div class="photo-cell \${state.hero === p ? 'hero' : ''}" onclick="setCloudHero('\${p}')" title="\${p}">
-          <img src="\${BASE}/\${s.folder}/\${p}" loading="lazy" alt="\${p}">
-          <div class="hero-badge">cover</div>
-        </div>
-      \`).join('')}
+      \${s.photos.map(p => cloudPhotoCell(p, s.folder, BASE)).join('')}
     </div>
   \`;
+}
+
+function cloudPhotoCell(p, folder, BASE) {
+  BASE = BASE || 'https://res.cloudinary.com/dttbzi3he/image/upload/f_auto,q_auto,w_220,h_220,c_fill';
+  const s = state.series.find(x => x.slug === state.active);
+  const f = (s && s.folder) ? s.folder : folder;
+  return \`<div class="photo-cell \${state.hero === p ? 'hero' : ''}" id="cell-\${p}" title="\${p}">
+    <img src="\${BASE}/\${f}/\${p}" loading="lazy" alt="\${p}" onclick="setCloudHero('\${p}')">
+    <div class="photo-overlay">
+      <div class="photo-filename">\${p}</div>
+      <button class="btn-remove" onclick="removePhoto('\${p}')">× remove</button>
+    </div>
+    <div class="hero-badge">cover</div>
+  </div>\`;
 }
 
 function setCloudHero(filename) {
@@ -881,6 +941,24 @@ function setCloudHero(filename) {
   document.querySelectorAll('#cloud-grid .photo-cell').forEach(el => {
     el.classList.toggle('hero', el.title === filename);
   });
+}
+
+async function removePhoto(filename) {
+  const slug = document.getElementById('f-slug')?.value.trim();
+  if (!confirm(\`Remove \${filename} from this series?\`)) return;
+  const res = await fetch('/api/remove-photo', {
+    method: 'POST',
+    body: JSON.stringify({ slug, filename }),
+  }).then(r => r.json());
+  if (res.error) { setStatus('error', res.error); return; }
+  // Remove from DOM
+  document.getElementById('cell-' + filename)?.remove();
+  document.getElementById('cloud-count').textContent = \`\${res.remaining} photos on cloudinary — hover to remove\`;
+  // Update local state
+  const s = state.series.find(x => x.slug === slug);
+  if (s) s.photos = s.photos.filter(p => p !== filename);
+  renderSidebar();
+  setStatus('ok', \`\${filename} removed — deploy to go live\`);
 }
 
 function autoSlug() {
