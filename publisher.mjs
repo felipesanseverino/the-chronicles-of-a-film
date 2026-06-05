@@ -192,9 +192,16 @@ async function route(req, res) {
   if (m === 'POST' && path === '/api/deploy') {
     const { slug, count, isNew, title } = await body(req);
     try {
-      const msg = isNew ? `Add ${title} series — ${count} photos` : `Update ${title} series — ${count} photos`;
       execSync(`git -C "${ROOT}" add config.js`, { stdio: 'pipe' });
-      execSync(`git -C "${ROOT}" commit -m "${msg}"`, { stdio: 'pipe' });
+
+      // Check if there's anything staged to commit
+      const diff = execSync(`git -C "${ROOT}" diff --cached --stat`, { stdio: 'pipe' }).toString().trim();
+      if (diff) {
+        const photoPart = count > 0 ? ` — ${count} photos` : '';
+        const msg = isNew ? `Add ${title} series${photoPart}` : `Update ${title} series${photoPart}`;
+        execSync(`git -C "${ROOT}" commit -m "${msg}"`, { stdio: 'pipe' });
+      }
+
       execSync(`git -C "${ROOT}" push`, { stdio: 'pipe' });
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ ok: true, url: `https://www.thechroniclesofafilm.com/series.html?s=${slug}` }));
