@@ -57,7 +57,7 @@ nav::after {
   font-size: 0.7rem;
   letter-spacing: 0.15em;
   color: var(--muted);
-  text-transform: uppercase;
+  text-transform: lowercase;
   text-decoration: none;
   transition: color 0.3s;
 }
@@ -73,7 +73,7 @@ nav::after {
   font-family: var(--mono);
   font-size: 0.65rem;
   letter-spacing: 0.2em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--muted);
   text-decoration: none;
   transition: color 0.3s;
@@ -95,7 +95,7 @@ footer span {
   font-size: 0.58rem;
   letter-spacing: 0.15em;
   color: var(--muted);
-  text-transform: uppercase;
+  text-transform: lowercase;
 }
 
 /* ── ANIMATIONS ── */
@@ -147,7 +147,7 @@ footer span {
   font-family: var(--mono);
   font-size: 0.65rem;
   letter-spacing: 0.2em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--muted);
   background: none;
   border: none;
@@ -182,7 +182,7 @@ footer span {
   font-size: 0.6rem;
   letter-spacing: 0.2em;
   color: var(--muted);
-  text-transform: uppercase;
+  text-transform: lowercase;
   white-space: nowrap;
 }
 
@@ -193,7 +193,7 @@ footer span {
   font-family: var(--mono);
   font-size: 0.65rem;
   letter-spacing: 0.2em;
-  text-transform: uppercase;
+  text-transform: lowercase;
   color: var(--muted);
 }
 

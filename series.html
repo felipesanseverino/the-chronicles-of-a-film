@@ -27,7 +27,7 @@
     font-family: var(--mono);
     font-size: 0.6rem;
     letter-spacing: 0.2em;
-    text-transform: uppercase;
+    text-transform: lowercase;
     color: var(--muted);
     text-decoration: none;
     display: inline-flex;
@@ -43,7 +43,7 @@
     font-family: var(--mono);
     font-size: 0.6rem;
     letter-spacing: 0.25em;
-    text-transform: uppercase;
+    text-transform: lowercase;
     color: var(--muted);
     margin-bottom: 1.5rem;
   }
@@ -55,14 +55,25 @@
     line-height: 0.95;
     color: var(--white);
     margin-bottom: 1.5rem;
+    text-transform: lowercase;
   }
 
   .series-page-meta {
     font-family: var(--mono);
     font-size: 0.6rem;
     letter-spacing: 0.2em;
-    text-transform: uppercase;
+    text-transform: lowercase;
     color: var(--muted);
+    margin-bottom: 2rem;
+  }
+
+  .series-description {
+    font-family: var(--serif);
+    font-size: 1rem;
+    line-height: 1.85;
+    color: var(--muted);
+    font-style: italic;
+    max-width: 44ch;
   }
 
   .series-header-right {
@@ -106,7 +117,7 @@
     font-family: var(--mono);
     font-size: 0.65rem;
     letter-spacing: 0.25em;
-    text-transform: uppercase;
+    text-transform: lowercase;
     color: var(--muted);
   }
 
@@ -186,6 +197,7 @@
     <p class="series-eyebrow reveal" id="series-eyebrow">series</p>
     <h1 class="series-page-title reveal" id="series-page-title"></h1>
     <p class="series-page-meta reveal" id="series-page-meta"></p>
+    <p class="series-description reveal" id="series-description"></p>
   </div>
   <div class="series-header-right">
     <img class="series-hero-img" id="series-hero-img" src="" alt="" loading="eager">
@@ -235,6 +247,8 @@
     // Header
     document.getElementById('series-page-title').textContent = s.title;
     document.getElementById('series-page-meta').textContent = s.meta;
+    const descEl = document.getElementById('series-description');
+    if (s.description) { descEl.textContent = s.description; } else { descEl.style.display = 'none'; }
     document.getElementById('series-eyebrow').textContent =
       `${String(series.indexOf(s) + 1).padStart(2,'0')} / ${series.length} series`;
 

@@ -5,6 +5,7 @@ const series = [
     slug: "japan",
     title: "Japan",
     meta: "Asia · 35mm",
+    description: "japan was the first place i ever visited outside brazil. seventeen years later, i'm here again. rediscovering the flavours, the sounds, the colours, the culture. a place where the old and the new meet, where the human side feels reserved and introspective, yet the spiritual side remains open and embracing.",
     folder: "chronicles/japan",
     photos: [
       "DSCF2095.jpg",
