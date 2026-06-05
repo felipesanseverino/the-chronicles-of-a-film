@@ -133,6 +133,12 @@ async function main() {
     series.forEach((s, i) => console.log(`  ${i + 1}  ${s.title} (${s.photos.length} photos)`));
     const pick = parseInt(await ask('\n  number')) - 1;
     targetSeries = { ...series[pick] };
+    hr();
+    console.log('  series intro text\n');
+    const current = targetSeries.description || '';
+    if (current) console.log(`  current: "${current.substring(0, 80)}..."\n`);
+    const desc = await ask(current ? '  update intro (enter to keep)' : '  intro text (optional, enter to skip)');
+    if (desc) targetSeries.description = desc;
   } else {
     isNew = true;
     hr();
@@ -231,7 +237,7 @@ async function main() {
       heroPublicId,
       ...series[idx].photos.filter(p => p !== heroPublicId)
     ];
-    if (targetSeries.description && !series[idx].description) {
+    if (targetSeries.description) {
       series[idx].description = targetSeries.description;
     }
   }
