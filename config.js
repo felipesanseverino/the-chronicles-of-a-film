@@ -3,8 +3,8 @@ const CLOUDINARY_BASE = "https://res.cloudinary.com/dttbzi3he/image/upload";
 const series = [
   {
     slug: "japan",
-    title: "Japan",
-    meta: "Asia · 35mm",
+    title: "japan",
+    meta: "digital · 35mm",
     description: "japan was the first place i ever visited outside brazil. seventeen years later, i'm here again. rediscovering the flavours, the sounds, the colours, the culture. a place where the old and the new meet, where the human side feels reserved and introspective, yet the spiritual side remains open and embracing.",
     folder: "chronicles/japan",
     photos: [
@@ -97,7 +97,7 @@ const series = [
       "DSCF2551.jpg",
       "DSCF2556.jpg",
       "DSCF2558.jpg",
-      "DSCF2562.jpg"
+      "DSCF2562.jpg",
     ]
   },
   {
@@ -107,7 +107,7 @@ const series = [
     folder: "chronicles/tokyo-toilet",
     photos: [
       "img_001.jpg",
-      "img_002.jpg"
+      "img_002.jpg",
     ]
   },
   {
@@ -117,7 +117,7 @@ const series = [
     folder: "chronicles/south-korea",
     photos: [
       "img_001.jpg",
-      "img_002.jpg"
+      "img_002.jpg",
     ]
   },
   {
@@ -127,7 +127,7 @@ const series = [
     folder: "chronicles/haarlem",
     photos: [
       "img_001.jpg",
-      "img_002.jpg"
+      "img_002.jpg",
     ]
   },
   {
@@ -137,7 +137,7 @@ const series = [
     folder: "chronicles/france",
     photos: [
       "img_001.jpg",
-      "img_002.jpg"
+      "img_002.jpg",
     ]
   },
   {
@@ -147,7 +147,7 @@ const series = [
     folder: "chronicles/italy",
     photos: [
       "img_001.jpg",
-      "img_002.jpg"
+      "img_002.jpg",
     ]
   },
   {
@@ -157,7 +157,7 @@ const series = [
     folder: "chronicles/spain",
     photos: [
       "img_001.jpg",
-      "img_002.jpg"
+      "img_002.jpg",
     ]
   },
   {
@@ -167,7 +167,7 @@ const series = [
     folder: "chronicles/sail-amsterdam",
     photos: [
       "img_001.jpg",
-      "img_002.jpg"
+      "img_002.jpg",
     ]
   },
   {
@@ -177,7 +177,7 @@ const series = [
     folder: "chronicles/slovenia",
     photos: [
       "img_001.jpg",
-      "img_002.jpg"
+      "img_002.jpg",
     ]
   },
   {
@@ -187,7 +187,7 @@ const series = [
     folder: "chronicles/costa-rica",
     photos: [
       "img_001.jpg",
-      "img_002.jpg"
+      "img_002.jpg",
     ]
   },
   {
@@ -197,7 +197,7 @@ const series = [
     folder: "chronicles/amsterdam",
     photos: [
       "img_001.jpg",
-      "img_002.jpg"
+      "img_002.jpg",
     ]
   },
   {
@@ -207,7 +207,7 @@ const series = [
     folder: "chronicles/miscellaneous",
     photos: [
       "img_001.jpg",
-      "img_002.jpg"
+      "img_002.jpg",
     ]
   }
 ];
