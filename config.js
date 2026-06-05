@@ -103,7 +103,8 @@ const series = [
   {
     slug: "tokyo-toilet",
     title: "Tokyo Toilet",
-    meta: "Asia · Digital",
+    meta: "digital",
+    description: "usually i’m not the one choosing where to go on holiday. i don’t like to plan; and that’s good, because it’s always a surprise, no expectations, just the here and now. but this time was different. i had to go. i had to take a photo of all 17 public toilets of the tokyo toilet project.\nmore info about the project here:  https://tokyotoilet.jp/en/",
     folder: "chronicles/tokyo-toilet",
     photos: [
       "img_001.jpg",
