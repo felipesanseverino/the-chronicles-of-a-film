@@ -927,13 +927,12 @@ function cloudPhotoCell(p, folder, BASE) {
   BASE = BASE || 'https://res.cloudinary.com/dttbzi3he/image/upload/f_auto,q_auto,w_220,h_220,c_fill';
   const s = state.series.find(x => x.slug === state.active);
   const f = (s && s.folder) ? s.folder : folder;
-  return \`<div class="photo-cell \${state.hero === p ? 'hero' : ''}" id="cell-\${p}" title="\${p}">
+  return \`<div class="photo-cell \${state.hero === p ? 'hero' : ''}" id="cell-\${p}" title="\${p}" onclick="setCloudHero('\${p}')">
     <img src="\${BASE}/\${f}/\${p}" loading="lazy" alt="\${p}"
-      onclick="setCloudHero('\${p}')"
       onerror="document.getElementById('cell-\${p}').style.display='none'; updateCloudCount()">
     <div class="photo-overlay">
       <div class="photo-filename">\${p}</div>
-      <button class="btn-remove" onclick="removePhoto('\${p}')">× remove</button>
+      <button class="btn-remove" onclick="event.stopPropagation(); removePhoto('\${p}')">× remove</button>
     </div>
     <div class="hero-badge">cover</div>
   </div>\`;
