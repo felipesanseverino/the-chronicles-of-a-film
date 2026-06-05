@@ -107,6 +107,18 @@ const series = [
     description: "usually i’m not the one choosing where to go on holiday. i don’t like to plan; and that’s good, because it’s always a surprise, no expectations, just the here and now. but this time was different. i had to go. i had to take a photo of all 17 public toilets of the tokyo toilet project.\nmore info about the project here:  https://tokyotoilet.jp/en/",
     folder: "chronicles/tokyo-toilet",
     photos: [
+      "DSCF2520.jpg",
+      "DSCF2538.jpg",
+      "DSCF2537.jpg",
+      "DSCF2521.jpg",
+      "DSCF2543.jpg",
+      "DSCF2541.jpg",
+      "DSCF2542.jpg",
+      "DSCF2580.jpg",
+      "DSCF2616.jpg",
+      "DSCF2615.jpg",
+      "DSCF2582.jpg",
+      "DSCF2584.jpg",
     ]
   },
   {
