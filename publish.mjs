@@ -2,70 +2,112 @@
 /**
  * tcof publisher
  * Usage: node publish.mjs
- *
- * Compresses photos locally → uploads to Cloudinary → updates config.js → deploys.
  */
 
 import { createInterface } from 'readline';
 import { readdirSync, statSync, mkdirSync, existsSync, readFileSync, writeFileSync } from 'fs';
-import { join, basename, resolve } from 'path';
-import { execSync, spawnSync } from 'child_process';
+import { join, resolve } from 'path';
+import { execSync } from 'child_process';
 import { tmpdir, homedir } from 'os';
 import { createRequire } from 'module';
 
-// ── Cloudinary (local install) ──────────────────────────────────────────────
+// ── Cloudinary ───────────────────────────────────────────────────────────────
 const require = createRequire(import.meta.url);
 let cloudinary;
 try {
   cloudinary = require('cloudinary').v2;
 } catch {
-  console.log('installing cloudinary...');
   execSync('npm install cloudinary', { cwd: new URL('.', import.meta.url).pathname, stdio: 'inherit' });
   cloudinary = require('cloudinary').v2;
 }
-
 cloudinary.config({
   cloud_name: 'dttbzi3he',
   api_key:    '167147487562595',
   api_secret: 'UkM39bfDbknbKh2FJpoOuPWN9NI',
 });
 
-const ROOT       = new URL('.', import.meta.url).pathname;
-const CONFIG     = join(ROOT, 'config.js');
-const MAX_BYTES  = 9.5 * 1024 * 1024;
-const IMG_EXT    = /\.(jpe?g|png|tiff?)$/i;
+// ── ANSI ─────────────────────────────────────────────────────────────────────
+const A = {
+  reset:  '\x1b[0m',
+  bold:   '\x1b[1m',
+  dim:    '\x1b[2m',
+  // colours
+  gold:   '\x1b[38;2;189;135;53m',
+  white:  '\x1b[38;2;229;210;182m',
+  muted:  '\x1b[38;2;90;86;80m',
+  green:  '\x1b[38;2;130;190;130m',
+  red:    '\x1b[38;2;220;100;100m',
+  bg:     '\x1b[48;2;14;14;14m',
+};
+const c  = (color, str) => `${A[color]}${str}${A.reset}`;
+const W  = process.stdout.columns || 72;
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
+// ── ASCII logo ────────────────────────────────────────────────────────────────
+const LOGO = `
+${c('gold','  ████████╗ ██████╗ ██████╗ ███████╗')}
+${c('gold','     ██╔══╝██╔════╝██╔═══██╗██╔════╝')}
+${c('gold','     ██║   ██║     ██║   ██║█████╗  ')}
+${c('gold','     ██║   ██║     ██║   ██║██╔══╝  ')}
+${c('gold','     ██║   ╚██████╗╚██████╔╝██║     ')}
+${c('muted','     ╚═╝    ╚═════╝ ╚═════╝ ╚═╝     ')}
+${c('muted','  the chronicles of a film  ·  publisher')}
+`;
+
+// ── UI helpers ────────────────────────────────────────────────────────────────
 const rl = createInterface({ input: process.stdin, output: process.stdout });
-const ask = (q, fallback = '') => new Promise(res =>
-  rl.question(fallback ? `${q} [${fallback}]: ` : `${q}: `, a => res(a.trim() || fallback))
-);
-const hr  = () => console.log('\n' + '─'.repeat(52));
-const log = (icon, msg) => console.log(`  ${icon}  ${msg}`);
+const ask = (label, fallback = '') => new Promise(res => {
+  const hint = fallback ? c('muted', ` [${fallback}]`) : '';
+  rl.question(`  ${c('muted','›')} ${c('white', label)}${hint}${c('muted',': ')}`, a => {
+    res(a.trim() || fallback);
+  });
+});
 
-function slugify(str) {
-  return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+function divider(label = '') {
+  const line = '─'.repeat(W - 4);
+  if (!label) return console.log(c('muted', `  ${line}`));
+  const pad = Math.max(0, W - 4 - label.length - 2);
+  console.log(c('muted', `  ─── `) + c('gold', label) + c('muted', ' ' + '─'.repeat(pad)));
 }
 
-// ── Read current config.js ───────────────────────────────────────────────────
+function ok(msg)   { console.log(`  ${c('green','✓')}  ${c('white', msg)}`); }
+function info(msg) { console.log(`  ${c('muted','·')}  ${c('muted', msg)}`); }
+function err(msg)  { console.log(`  ${c('red','✗')}  ${c('red', msg)}`); }
+function link(msg) { console.log(`  ${c('gold','→')}  ${c('gold', msg)}`); }
+
+function progress(done, total, label = '') {
+  const BAR = 28;
+  const filled = Math.round((done / total) * BAR);
+  const bar = c('gold', '█'.repeat(filled)) + c('muted', '░'.repeat(BAR - filled));
+  const pct = String(Math.round((done / total) * 100)).padStart(3);
+  process.stdout.write(
+    `\r  ${c('muted','[')}${bar}${c('muted',']')} ${c('white', pct + '%')}  ${c('muted', label.slice(0,28).padEnd(28))}`
+  );
+}
+
+function menuItem(n, label, sub = '') {
+  console.log(`  ${c('gold', String(n))}  ${c('white', label)}${sub ? '  ' + c('muted', sub) : ''}`);
+}
+
+// ── Config helpers ────────────────────────────────────────────────────────────
+const ROOT   = new URL('.', import.meta.url).pathname;
+const CONFIG = join(ROOT, 'config.js');
+const IMG_EXT = /\.(jpe?g|png|tiff?)$/i;
+const MAX_BYTES = 9.5 * 1024 * 1024;
+
 function readConfig() {
   const src = readFileSync(CONFIG, 'utf8');
-  // Extract CLOUDINARY_BASE and series array as text blocks
-  const baseMatch = src.match(/const CLOUDINARY_BASE\s*=\s*"([^"]+)"/);
-  const base = baseMatch ? baseMatch[1] : '';
-  // Eval the series array safely by isolating it
   const seriesMatch = src.match(/const series\s*=\s*(\[[\s\S]*?\]);/);
   let series = [];
-  if (seriesMatch) {
-    try { series = eval(seriesMatch[1]); } catch {}
-  }
-  return { base, series, src };
+  if (seriesMatch) { try { series = eval(seriesMatch[1]); } catch {} }
+  return { series };
 }
 
-// ── Write updated config.js ──────────────────────────────────────────────────
 function writeConfig(series) {
-  const lines = ['const CLOUDINARY_BASE = "https://res.cloudinary.com/dttbzi3he/image/upload";', ''];
-  lines.push('const series = [');
+  const lines = [
+    'const CLOUDINARY_BASE = "https://res.cloudinary.com/dttbzi3he/image/upload";',
+    '',
+    'const series = [',
+  ];
   series.forEach((s, i) => {
     lines.push('  {');
     lines.push(`    slug: ${JSON.stringify(s.slug)},`);
@@ -78,31 +120,27 @@ function writeConfig(series) {
     lines.push(`    ]`);
     lines.push(i < series.length - 1 ? '  },' : '  }');
   });
-  lines.push('];');
-  lines.push('');
+  lines.push('];', '');
   writeFileSync(CONFIG, lines.join('\n'), 'utf8');
 }
 
-// ── Compress one photo ────────────────────────────────────────────────────────
+function slugify(str) {
+  return str.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+}
+
+// ── Compress ──────────────────────────────────────────────────────────────────
 function compress(src, destDir) {
-  const dest = join(destDir, basename(src));
-  if (existsSync(dest)) return dest;
-  execSync(
-    `sips --resampleWidth 3000 --setProperty formatOptions 82 "${src}" --out "${dest}"`,
-    { stdio: 'pipe' }
-  );
+  const dest = join(destDir, src.split('/').pop());
+  if (!existsSync(dest)) {
+    execSync(`sips --resampleWidth 3000 --setProperty formatOptions 82 "${src}" --out "${dest}"`, { stdio: 'pipe' });
+  }
   return dest;
 }
 
-// ── Upload one photo ─────────────────────────────────────────────────────────
+// ── Upload ────────────────────────────────────────────────────────────────────
 async function uploadPhoto(filePath, folder, publicId) {
   try {
-    await cloudinary.uploader.upload(filePath, {
-      folder,
-      public_id: publicId,
-      overwrite: false,
-      resource_type: 'image',
-    });
+    await cloudinary.uploader.upload(filePath, { folder, public_id: publicId, overwrite: false, resource_type: 'image' });
     return 'uploaded';
   } catch (e) {
     if (e.message?.includes('already exists')) return 'exists';
@@ -110,165 +148,182 @@ async function uploadPhoto(filePath, folder, publicId) {
   }
 }
 
-// ── Main ─────────────────────────────────────────────────────────────────────
+// ── Main ──────────────────────────────────────────────────────────────────────
 async function main() {
   console.clear();
-  console.log('\n  ✦  tcof publisher\n');
+  console.log(LOGO);
 
   const { series } = readConfig();
 
-  // ── What to do? ──
-  hr();
-  console.log('  what would you like to do?\n');
-  console.log('  1  add a new series');
-  console.log('  2  update an existing series (add/replace photos)');
-  const action = await ask('\n  choice', '1');
+  // ── action ──
+  divider('what would you like to do?');
+  console.log('');
+  menuItem(1, 'add a new series');
+  menuItem(2, 'update an existing series', '(add photos / edit intro)');
+  console.log('');
+  const action = await ask('choice', '1');
 
   let targetSeries;
   let isNew = false;
 
   if (action === '2') {
-    hr();
-    console.log('  existing series:\n');
-    series.forEach((s, i) => console.log(`  ${i + 1}  ${s.title} (${s.photos.length} photos)`));
-    const pick = parseInt(await ask('\n  number')) - 1;
+    console.log('');
+    divider('existing series');
+    console.log('');
+    series.forEach((s, i) =>
+      menuItem(i + 1, s.title, `${s.photos.length} photos · ${s.meta}`)
+    );
+    console.log('');
+    const pick = parseInt(await ask('number')) - 1;
     targetSeries = { ...series[pick] };
-    hr();
-    console.log('  series intro text\n');
-    const current = targetSeries.description || '';
-    if (current) console.log(`  current: "${current.substring(0, 80)}..."\n`);
-    const desc = await ask(current ? '  update intro (enter to keep)' : '  intro text (optional, enter to skip)');
+
+    // description
+    console.log('');
+    divider('series intro');
+    console.log('');
+    if (targetSeries.description) {
+      info(`current: "${targetSeries.description.substring(0, 70)}…"`);
+      console.log('');
+    }
+    const desc = await ask(
+      targetSeries.description ? 'update intro (enter to keep)' : 'intro text (optional)'
+    );
     if (desc) targetSeries.description = desc;
+
   } else {
     isNew = true;
-    hr();
-    console.log('  new series details:\n');
-    const title       = await ask('  title (e.g. South Korea)');
-    const slugDefault = slugify(title);
-    const slug        = await ask('  slug', slugDefault);
-    const meta        = await ask('  meta (e.g. Asia · 35mm)');
-    const description = await ask('  description (optional, press enter to skip)');
+    console.log('');
+    divider('new series');
+    console.log('');
+    const title       = await ask('title (e.g. South Korea)');
+    const slug        = await ask('slug', slugify(title));
+    const meta        = await ask('meta (e.g. Asia · 35mm)');
+    console.log('');
+    divider('series intro');
+    console.log('');
+    const description = await ask('intro text (optional)');
     targetSeries = {
-      slug,
-      title,
-      meta,
+      slug, title, meta,
       ...(description ? { description } : {}),
       folder: `chronicles/${slug}`,
       photos: [],
     };
   }
 
-  // ── Photo folder ──
-  hr();
-  console.log('  photos\n');
-  const folderPath = resolve((await ask('  folder path')).replace(/^~/, homedir()));
-  if (!existsSync(folderPath)) { console.error('\n  ✗  folder not found'); process.exit(1); }
+  // ── folder ──
+  console.log('');
+  divider('photos');
+  console.log('');
+  const rawPath    = await ask('folder path');
+  const folderPath = resolve(rawPath.replace(/^~/, homedir()));
+  if (!existsSync(folderPath)) { err('folder not found'); process.exit(1); }
 
   const allFiles = readdirSync(folderPath).filter(f => IMG_EXT.test(f)).sort();
-  if (!allFiles.length) { console.error('\n  ✗  no images found'); process.exit(1); }
+  if (!allFiles.length) { err('no images found in that folder'); process.exit(1); }
 
-  log('✓', `found ${allFiles.length} photos`);
+  console.log('');
+  ok(`found ${c('gold', String(allFiles.length))} photos`);
 
-  // ── Hero photo ──
-  console.log('\n  which photo should be the hero (cover)?\n');
-  allFiles.slice(0, 10).forEach((f, i) => console.log(`  ${i + 1}  ${f}`));
-  if (allFiles.length > 10) console.log(`  ... and ${allFiles.length - 10} more`);
-  const heroInput = await ask('\n  filename or number', '1');
-  let heroFile = isNaN(heroInput)
+  // ── hero ──
+  console.log('');
+  divider('cover photo');
+  console.log('');
+  const preview = allFiles.slice(0, 12);
+  preview.forEach((f, i) => info(`${String(i + 1).padStart(2)}  ${f}`));
+  if (allFiles.length > 12) info(`    … and ${allFiles.length - 12} more`);
+  console.log('');
+  const heroInput = await ask('filename or number', '1');
+  const heroFile  = isNaN(heroInput)
     ? allFiles.find(f => f.toLowerCase().includes(heroInput.toLowerCase())) || allFiles[0]
     : allFiles[parseInt(heroInput) - 1] || allFiles[0];
+  const ordered   = [heroFile, ...allFiles.filter(f => f !== heroFile)];
+  console.log('');
+  ok(`cover → ${c('gold', heroFile)}`);
 
-  // Put hero first
-  const ordered = [heroFile, ...allFiles.filter(f => f !== heroFile)];
-  log('✓', `hero → ${heroFile}`);
-
-  // ── Compress ──
-  hr();
-  console.log('  compressing photos...\n');
+  // ── compress ──
+  console.log('');
+  divider('compressing');
+  console.log('');
   const tmpDir = join(tmpdir(), `tcof-${targetSeries.slug}`);
   mkdirSync(tmpDir, { recursive: true });
-
   const compressed = [];
-  for (let i = 0; i < ordered.length; i++) {
-    const f = ordered[i];
-    process.stdout.write(`\r  [${i + 1}/${ordered.length}] ${f}                    `);
-    const dest = compress(join(folderPath, f), tmpDir);
-    const sizeMB = (statSync(dest).size / 1024 / 1024).toFixed(1);
-    compressed.push({ file: f, dest, sizeMB });
-  }
-  console.log('\n');
-  log('✓', 'compression done');
 
-  // ── Upload ──
-  hr();
-  console.log('  uploading to cloudinary...\n');
+  for (let i = 0; i < ordered.length; i++) {
+    progress(i, ordered.length, ordered[i]);
+    const dest = compress(join(folderPath, ordered[i]), tmpDir);
+    compressed.push({ file: ordered[i], dest });
+  }
+  progress(ordered.length, ordered.length, 'done');
+  console.log('\n');
+  ok(`compressed ${c('gold', String(compressed.length))} photos`);
+
+  // ── upload ──
+  console.log('');
+  divider('uploading to cloudinary');
+  console.log('');
   const uploaded = [];
-  const BATCH = 4;
+  const BATCH    = 4;
 
   for (let i = 0; i < compressed.length; i += BATCH) {
     const batch = compressed.slice(i, i + BATCH);
     await Promise.all(batch.map(async ({ file, dest }) => {
       const publicId = file.replace(/\.[^.]+$/, '').toUpperCase();
-      const status = await uploadPhoto(dest, targetSeries.folder, publicId);
+      await uploadPhoto(dest, targetSeries.folder, publicId);
       uploaded.push(publicId + '.jpg');
-      const idx = uploaded.length;
-      process.stdout.write(`\r  [${idx}/${compressed.length}] ${file} (${status})`);
+      progress(uploaded.length, compressed.length, file);
     }));
   }
+  progress(compressed.length, compressed.length, 'done');
   console.log('\n');
-  log('✓', `${uploaded.length} photos ready on cloudinary`);
+  ok(`${c('gold', String(uploaded.length))} photos on cloudinary`);
 
-  // ── Update config.js ──
-  hr();
-  console.log('  updating config.js...\n');
+  // ── config ──
+  console.log('');
+  divider('updating config');
+  console.log('');
 
   if (isNew) {
     targetSeries.photos = uploaded;
     series.push(targetSeries);
   } else {
     const idx = series.findIndex(s => s.slug === targetSeries.slug);
-    // Merge: keep existing photos not in this upload, add new ones
-    const existing = series[idx].photos;
-    const newPhotos = uploaded.filter(p => !existing.includes(p));
-    series[idx].photos = [...new Set([...uploaded, ...existing])];
-    // Re-order so hero is first
-    const heroPublicId = heroFile.replace(/\.[^.]+$/, '').toUpperCase() + '.jpg';
-    series[idx].photos = [
-      heroPublicId,
-      ...series[idx].photos.filter(p => p !== heroPublicId)
-    ];
-    if (targetSeries.description) {
-      series[idx].description = targetSeries.description;
-    }
+    const heroId = heroFile.replace(/\.[^.]+$/, '').toUpperCase() + '.jpg';
+    const merged = [...new Set([...uploaded, ...series[idx].photos])];
+    series[idx].photos = [heroId, ...merged.filter(p => p !== heroId)];
+    if (targetSeries.description) series[idx].description = targetSeries.description;
   }
 
   writeConfig(series);
-  log('✓', 'config.js updated');
+  ok('config.js saved');
 
-  // ── Deploy ──
-  hr();
-  const deploy = await ask('\n  deploy now? (git commit + push)', 'y');
+  // ── deploy ──
+  console.log('');
+  divider('deploy');
+  console.log('');
+  const deploy = await ask('push to github + deploy? (y/n)', 'y');
   if (deploy.toLowerCase() !== 'n') {
     console.log('');
     const seriesObj = series.find(s => s.slug === targetSeries.slug);
     const msg = isNew
       ? `Add ${seriesObj.title} series — ${uploaded.length} photos`
       : `Update ${seriesObj.title} series — ${uploaded.length} photos`;
-
     try {
       execSync(`git -C "${ROOT}" add config.js`, { stdio: 'pipe' });
       execSync(`git -C "${ROOT}" commit -m "${msg}"`, { stdio: 'pipe' });
       execSync(`git -C "${ROOT}" push`, { stdio: 'pipe' });
-      log('✓', 'pushed — vercel is deploying');
-      log('→', `https://www.thechroniclesofafilm.com/series.html?s=${targetSeries.slug}`);
+      ok('pushed to github');
+      ok('vercel is deploying…');
+      console.log('');
+      link(`https://www.thechroniclesofafilm.com/series.html?s=${targetSeries.slug}`);
     } catch (e) {
-      log('✗', 'git error: ' + e.message);
+      err('git error: ' + e.message);
     }
   }
 
-  hr();
-  console.log('\n  all done.\n');
+  console.log('');
+  divider();
+  console.log(`\n  ${c('gold','✦')}  ${c('white','all done.')}\n`);
   rl.close();
 }
 
-main().catch(e => { console.error(e); process.exit(1); });
+main().catch(e => { err(e.message); process.exit(1); });
