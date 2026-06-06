@@ -207,9 +207,11 @@ const series = [
   {
     slug: "slovenia",
     title: "Slovenia",
-    meta: "Europe · Medium Format",
+    meta: "digital",
     folder: "chronicles/slovenia",
     photos: [
+      "DSCF1719.jpg",
+      "DSCF1872.jpg",
     ]
   },
   {
