@@ -231,9 +231,11 @@ const series = [
   {
     slug: "miscellaneous",
     title: "Miscellaneous",
-    meta: "Various · Mixed",
+    meta: "digital · 35mm · 120mm",
+    description: "some shots i took throughout the years. each belongs to a space and time. a moment shared only between me and my camera. fragments that don’t form an album, but still hold their own stories.",
     folder: "chronicles/miscellaneous",
     photos: [
+      "DSCF0306.jpg",
     ]
   }
 ];
