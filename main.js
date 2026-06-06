@@ -10,9 +10,9 @@ function cloudUrl(folder, filename, transforms) {
   return `${CLOUDINARY_BASE}/${transforms}/${folder}/${filename}`;
 }
 
-// Lightbox
+// Archive lightbox
 const lightbox = document.getElementById('lightbox');
-if (lightbox) {
+if (lightbox && !document.getElementById('photo-grid')) {
   let photos = [];
   let currentIdx = 0;
   let seriesTitle = '';
@@ -22,7 +22,7 @@ if (lightbox) {
   const lbMeta = lightbox.querySelector('.lightbox-meta');
   const lbTitle = lightbox.querySelector('.lightbox-title');
 
-  function openLightbox(s, startIdx) {
+  function openArchiveLightbox(s, startIdx) {
     seriesTitle = s.title;
     photos = s.photos.map(p => cloudUrl(s.folder, p, 'f_auto,q_auto,w_1400'));
     currentIdx = startIdx || 0;
@@ -64,5 +64,5 @@ if (lightbox) {
     if (Math.abs(dx) > 50) dx < 0 ? next() : prev();
   });
 
-  window._openLightbox = openLightbox;
+  window._openLightbox = openArchiveLightbox;
 }
