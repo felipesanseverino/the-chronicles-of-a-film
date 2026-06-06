@@ -8,7 +8,7 @@ const STATIC = [
   '/main.js',
   '/config.js',
   '/manifest.json',
-  '/favicon.svg',
+  '/favicon.png',
 ];
 
 self.addEventListener('install', e => {
