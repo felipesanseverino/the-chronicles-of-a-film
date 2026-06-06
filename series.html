@@ -3,7 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0e0e0e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="tcof">
 <title>Series — the chronicles of a film</title>
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="manifest" href="/manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Overpass+Mono:wght@300;400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -167,23 +174,28 @@
   /* ── MOBILE ── */
   @media (max-width: 768px) {
     .series-header { grid-template-columns: 1fr; min-height: auto; }
-    .series-header-left { padding: 7rem 1.5rem 2.5rem; }
-    .series-header-right { height: 55vw; }
-    .series-hero-overlay { background: linear-gradient(to bottom, var(--bg) 0%, transparent 20%); }
-    .photos-section { padding: 3rem 1.5rem 5rem; }
-    .photo-grid { columns: 2; column-gap: 0.6rem; }
-    .photo-item { margin-bottom: 0.6rem; }
+    .series-header-right { height: 55vw; order: -1; }
+    .series-hero-overlay { background: linear-gradient(to bottom, transparent 60%, var(--bg) 100%); }
+    .series-header-left { padding: 2rem 1.25rem 2.5rem; }
+    .back-link { margin-bottom: 1.5rem; }
+    .series-page-title { font-size: clamp(2.5rem, 9vw, 4rem); }
+    .series-description { max-width: 100%; font-size: 0.9rem; }
+    .photos-section { padding: 2.5rem 1.25rem 4rem; }
+    .photos-header { margin-bottom: 2rem; }
+    .photo-grid { columns: 2; column-gap: 0.5rem; }
+    .photo-item { margin-bottom: 0.5rem; }
   }
 
   @media (max-width: 480px) {
     .photo-grid { columns: 1; }
+    .series-page-title { font-size: clamp(2.2rem, 10vw, 3rem); }
   }
 </style>
 </head>
 <body>
 
 <nav>
-  <a href="index.html" class="nav-logo">tcf</a>
+  <a href="index.html" class="nav-logo">tcof</a>
   <ul class="nav-links">
     <li><a href="index.html">Home</a></li>
     <li><a href="index.html#archives">Archives</a></li>
@@ -279,6 +291,7 @@
   }
 </script>
 <script src="main.js"></script>
+<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
 <script>
   // Lightbox for series page (inline, no archive.html dependency)
   let lbPhotos = [], lbIdx = 0, lbTouchX = 0;
