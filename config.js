@@ -151,7 +151,7 @@ const series = [
   {
     slug: "haarlem",
     title: "Haarlem",
-    meta: "Netherlands · Medium Format",
+    meta: "digital · 35mm · 120mm",
     description: "the place i call home • haarlem has everything you expect from a dutch city — the canals, the bars, the architecture. but haarlem is more than that. haarlem became home in quiet ways.",
     folder: "chronicles/haarlem",
     photos: [
