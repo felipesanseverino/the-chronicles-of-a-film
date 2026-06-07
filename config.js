@@ -215,6 +215,7 @@ const series = [
     slug: "bassano-del-grappa",
     title: "bassano del grappa",
     meta: "digital",
+    description: "not the usual stop when travelling through italy. bassano has everything you would expect from a small italian town: beautiful historic houses, good wine, and delicious pasta. but while we were there, it became more than just another destination. it was where we celebrated the wedding of our friends, turning a place into a memory.",
     folder: "chronicles/bassano-del-grappa",
     photos: [
       "1000124994.jpg",
