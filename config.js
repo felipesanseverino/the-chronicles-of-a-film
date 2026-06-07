@@ -165,14 +165,6 @@ const series = [
     ]
   },
   {
-    slug: "france",
-    title: "France",
-    meta: "Europe · 35mm",
-    folder: "chronicles/france",
-    photos: [
-    ]
-  },
-  {
     slug: "spain",
     title: "Spain",
     meta: "Europe · Digital",
