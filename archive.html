@@ -101,7 +101,7 @@
 
   .series-thumb {
     width: 5.5rem;
-    height: 3.5rem;
+    height: 5.5rem;
     object-fit: cover;
     filter: grayscale(30%);
     transition: filter 0.4s;
@@ -112,7 +112,7 @@
 
   .series-thumb-placeholder {
     width: 5.5rem;
-    height: 3.5rem;
+    height: 5.5rem;
     background: var(--surface);
     border: 1px solid var(--border);
     display: flex;
@@ -165,6 +165,8 @@
     .page-header { padding: 7rem 1.5rem 0; }
     #archives { padding: 3rem 1.5rem 4rem; }
     .series-item { grid-template-columns: 4rem 1fr 2rem; gap: 1rem; }
+    .series-thumb { width: 4rem; height: 4rem; }
+    .series-thumb-placeholder { width: 4rem; height: 4rem; }
     .series-location { display: none; }
     .series-name { font-size: 1.2rem; }
   }
@@ -219,7 +221,7 @@
   countEl.textContent = `${series.length} series`;
 
   series.forEach((s, i) => {
-    const thumbUrl = `${CLOUDINARY_BASE}/f_auto,q_auto,w_400,c_fill,ar_3:2/${s.folder}/${s.photos[0]}`;
+    const thumbUrl = `${CLOUDINARY_BASE}/f_auto,q_auto,w_400,c_fill,ar_1:1/${s.folder}/${s.photos[0]}`;
 
     const item = document.createElement('div');
     item.className = 'series-item reveal';
