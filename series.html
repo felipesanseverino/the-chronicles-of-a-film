@@ -86,6 +86,8 @@
   .series-header-right {
     position: relative;
     overflow: hidden;
+    aspect-ratio: 1 / 1;
+    align-self: center;
   }
 
   .series-hero-img {
@@ -174,7 +176,7 @@
   /* ── MOBILE ── */
   @media (max-width: 768px) {
     .series-header { grid-template-columns: 1fr; min-height: auto; }
-    .series-header-right { height: 55vw; order: -1; }
+    .series-header-right { height: auto; order: -1; }
     .series-hero-overlay { background: linear-gradient(to bottom, transparent 60%, var(--bg) 100%); }
     .series-header-left { padding: 2rem 1.25rem 2.5rem; }
     .back-link { margin-bottom: 1.5rem; }
@@ -266,7 +268,7 @@
 
     // Hero (first photo)
     const heroImg = document.getElementById('series-hero-img');
-    heroImg.src = `${CLOUDINARY_BASE}/f_auto,q_auto,w_1400/${s.folder}/${s.photos[0]}`;
+    heroImg.src = `${CLOUDINARY_BASE}/f_auto,q_auto,w_1400,h_1400,c_fill/${s.folder}/${s.photos[0]}`;
     heroImg.alt = s.title;
 
     // Photo count
