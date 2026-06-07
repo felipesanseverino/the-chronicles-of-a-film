@@ -304,9 +304,9 @@
     .hero-title { font-size: clamp(2.2rem, 7.2vw, 3.3rem); line-height: 0.95; margin: 0 !important; position: absolute; top: 25vw; left: 1.25rem; right: 0.75rem; transform: translateY(-50%); }
     /* override reveal animation on mobile so transform doesn't fight positioning */
     .hero-title.reveal { transform: translateY(-50%) !important; opacity: 1 !important; transition: none !important; }
-    /* eyebrow + desc: pinned to bottom */
-    .hero-eyebrow { position: absolute; bottom: 5.5rem; left: 1.25rem; margin: 0; font-size: 0.45rem; letter-spacing: 0.15em; }
-    .hero-desc { display: block !important; position: absolute; bottom: 1.25rem; left: 1.25rem; right: 0.75rem; margin: 0; font-size: 0.82rem; line-height: 1.55; font-style: italic; color: var(--text); max-width: 100%; }
+    /* eyebrow + desc: grouped below the title/photo cluster */
+    .hero-eyebrow { position: absolute; top: calc(25vw + 4.8rem); left: 1.25rem; margin: 0; font-size: 0.45rem; letter-spacing: 0.15em; }
+    .hero-desc { display: block !important; position: absolute; top: calc(25vw + 7.15rem); left: 1.25rem; right: 0.75rem; margin: 0; font-size: 0.82rem; line-height: 1.55; font-style: italic; color: var(--text); max-width: 100%; }
     .hero-formats { display: none; }
     .scroll-hint { display: none; }
     .hero-counter { font-size: 0.45rem; }
