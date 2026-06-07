@@ -173,14 +173,6 @@ const series = [
     ]
   },
   {
-    slug: "italy",
-    title: "Italy",
-    meta: "Europe · 35mm",
-    folder: "chronicles/italy",
-    photos: [
-    ]
-  },
-  {
     slug: "spain",
     title: "Spain",
     meta: "Europe · Digital",
