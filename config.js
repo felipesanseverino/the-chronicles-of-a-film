@@ -202,14 +202,6 @@ const series = [
     ]
   },
   {
-    slug: "costa-rica",
-    title: "Costa Rica",
-    meta: "Americas · Digital",
-    folder: "chronicles/costa-rica",
-    photos: [
-    ]
-  },
-  {
     slug: "amsterdam",
     title: "Amsterdam",
     meta: "Netherlands · 35mm",
