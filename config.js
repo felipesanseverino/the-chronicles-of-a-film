@@ -202,14 +202,6 @@ const series = [
     ]
   },
   {
-    slug: "amsterdam",
-    title: "Amsterdam",
-    meta: "Netherlands · 35mm",
-    folder: "chronicles/amsterdam",
-    photos: [
-    ]
-  },
-  {
     slug: "miscellaneous",
     title: "Miscellaneous",
     meta: "digital · 35mm · 120mm",
