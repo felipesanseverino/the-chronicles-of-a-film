@@ -167,7 +167,7 @@ const series = [
   {
     slug: "spain",
     title: "Spain",
-    meta: "Europe · Digital",
+    meta: "digital",
     folder: "chronicles/spain",
     photos: [
       "DSCF0939.jpg",
