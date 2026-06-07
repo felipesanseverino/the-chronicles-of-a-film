@@ -155,9 +155,9 @@ const series = [
     description: "the place i call home • haarlem has everything you expect from a dutch city — the canals, the bars, the architecture. but haarlem is more than that. haarlem became home in quiet ways.",
     folder: "chronicles/haarlem",
     photos: [
+      "DSCF1553.jpg",
       "DSCF1455.jpg",
       "DSCF1551.jpg",
-      "DSCF1553.jpg",
       "DSCF1540.jpg",
       "DSCF1558.jpg",
       "STREETCANDY ATM400-0004.jpg",
