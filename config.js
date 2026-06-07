@@ -210,5 +210,19 @@ const series = [
     photos: [
       "DSCF0306.jpg",
     ]
+  },
+  {
+    slug: "bassano-del-grappa",
+    title: "bassano del grappa",
+    meta: "digital",
+    folder: "chronicles/bassano-del-grappa",
+    photos: [
+      "1000124994.jpg",
+      "1000124997.jpg",
+      "1000125005.jpg",
+      "1000125020.jpg",
+      "1000125059.jpg",
+      "1000125088.jpg",
+    ]
   }
 ];
