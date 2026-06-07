@@ -186,6 +186,9 @@ const series = [
     meta: "Europe · Digital",
     folder: "chronicles/spain",
     photos: [
+      "DSCF0939.jpg",
+      "DSCF1068.jpg",
+      "DSCF1025.jpg",
     ]
   },
   {
