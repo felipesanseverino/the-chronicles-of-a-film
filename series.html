@@ -440,6 +440,12 @@
     return `${CLOUDINARY_BASE}/${transform}/${item.folder}/${encodeURIComponent(photo)}`;
   }
 
+  function validPhotoList(item, list, fallback) {
+    const available = new Set(item.photos || []);
+    const requested = Array.isArray(list) ? list.filter((photo) => available.has(photo)) : [];
+    return requested.length ? requested : fallback;
+  }
+
   const sourceSeries = typeof series !== "undefined" && Array.isArray(series) ? series : [];
   const params = new URLSearchParams(window.location.search);
   const requestedSlug = params.get("s");
@@ -458,28 +464,30 @@
         .replace(/\s*more info about the project here:.*/i, "")
         .trim();
     }
-    document.getElementById("essay-note").textContent =
-      chapter.slug === "tokyo-toilet"
+    document.getElementById("essay-note").textContent = chapter.essayNote ||
+      (chapter.slug === "tokyo-toilet"
         ? "seventeen public rooms, treated less like landmarks and more like quiet interruptions in the day."
-        : "a few frames from the chapter, sequenced slowly and left with enough room to breathe.";
+        : "a few frames from the chapter, sequenced slowly and left with enough room to breathe.");
 
     const heroPhoto = chapter.photos[1] || chapter.photos[0];
     document.getElementById("hero-image").src = imageUrl(chapter, heroPhoto, 1800);
 
-    const selected = chapter.photos.slice(0, Math.min(8, chapter.photos.length));
+    const selected = validPhotoList(chapter, chapter.selectedPhotos, chapter.photos.slice(0, Math.min(8, chapter.photos.length)));
+    const captions = Array.isArray(chapter.captions) ? chapter.captions : [];
     const sequence = document.getElementById("photo-sequence");
     selected.forEach((photo, index) => {
       const figure = document.createElement("figure");
       figure.className = "photo-frame";
       figure.innerHTML = `
         <img src="${imageUrl(chapter, photo, index < 2 ? 1500 : 1200)}" alt="${chapter.title.toLowerCase()} frame ${index + 1}" loading="${index < 2 ? "eager" : "lazy"}">
-        <figcaption>${fallbackCaptions[index] || `${chapter.title.toLowerCase()}, frame ${String(index + 1).padStart(3, "0")}.`}</figcaption>
+        <figcaption>${captions[index] || fallbackCaptions[index] || `${chapter.title.toLowerCase()}, frame ${String(index + 1).padStart(3, "0")}.`}</figcaption>
       `;
       sequence.appendChild(figure);
     });
 
     const contact = document.getElementById("contact-grid");
-    chapter.photos.slice(0, 36).forEach((photo, index) => {
+    const contactPhotos = validPhotoList(chapter, chapter.contactSheetPhotos, chapter.photos.slice(0, 36));
+    contactPhotos.forEach((photo, index) => {
       const figure = document.createElement("figure");
       figure.className = "contact-item";
       figure.innerHTML = `
@@ -488,6 +496,8 @@
       `;
       contact.appendChild(figure);
     });
+    document.querySelector(".chapter-end p").textContent = chapter.closingText ||
+      "one opening image, a short note, a slow sequence, and a small contact sheet at the end.";
   }
 </script>
 <script>

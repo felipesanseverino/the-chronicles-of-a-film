@@ -6,11 +6,12 @@
  */
 
 import http from 'http';
-import { readFileSync, writeFileSync, existsSync, mkdirSync, statSync, readdirSync } from 'fs';
-import { join, resolve, extname } from 'path';
-import { execSync } from 'child_process';
+import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync, statSync } from 'fs';
+import { join, resolve } from 'path';
+import { spawnSync } from 'child_process';
 import { tmpdir, homedir } from 'os';
 import { createRequire } from 'module';
+import { createHash } from 'crypto';
 
 const PORT   = 4242;
 const ROOT   = new URL('.', import.meta.url).pathname.replace(/\/$/, '');
@@ -18,15 +19,66 @@ const CONFIG = join(ROOT, 'config.js');
 const CACHE  = new Map(); // thumb cache
 const IMG_EXT = /\.(jpe?g|png|tiff?)$/i;
 
+function loadLocalEnv(filePath) {
+  if (!existsSync(filePath)) return;
+  const lines = readFileSync(filePath, 'utf8').split(/\r?\n/);
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+    const match = line.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+    if (!match || process.env[match[1]] !== undefined) continue;
+    let value = match[2].trim();
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    process.env[match[1]] = value;
+  }
+}
+
 // ── Cloudinary ────────────────────────────────────────────────────────────────
 const require = createRequire(import.meta.url);
+loadLocalEnv(join(ROOT, '.env'));
+
 let cloudinary;
-try { cloudinary = require('cloudinary').v2; }
-catch {
-  execSync('npm install cloudinary', { cwd: ROOT, stdio: 'inherit' });
-  cloudinary = require('cloudinary').v2;
+
+function getCloudinary() {
+  if (cloudinary) return cloudinary;
+  let sdk;
+  try { sdk = require('cloudinary').v2; }
+  catch {
+    throw new Error('Missing dependency: run `npm install` before publishing.');
+  }
+
+  const config = {
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dttbzi3he',
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+  };
+  const missing = Object.entries(config)
+    .filter(([, value]) => !value)
+    .map(([key]) => key);
+  if (missing.length) {
+    throw new Error(`Missing Cloudinary environment values: ${missing.join(', ')}. Fill in .env, then try publishing again.`);
+  }
+
+  sdk.config(config);
+  cloudinary = sdk;
+  return cloudinary;
 }
-cloudinary.config({ cloud_name: 'dttbzi3he', api_key: '167147487562595', api_secret: 'UkM39bfDbknbKh2FJpoOuPWN9NI' });
+
+function run(command, args, options = {}) {
+  const result = spawnSync(command, args, { encoding: 'utf8', timeout: 120000, ...options });
+  if (result.error) {
+    throw new Error(result.error.code === 'ETIMEDOUT'
+      ? `${command} timed out`
+      : result.error.message);
+  }
+  if (result.status !== 0) {
+    const msg = (result.stderr || result.stdout || `${command} failed`).trim();
+    throw new Error(msg);
+  }
+  return result.stdout || '';
+}
 
 // ── Config helpers ────────────────────────────────────────────────────────────
 function readConfig() {
@@ -37,6 +89,17 @@ function readConfig() {
   return series;
 }
 
+function readRemoteConfig() {
+  try {
+    run('git', ['-C', ROOT, 'fetch', 'origin', 'main']);
+    const src = run('git', ['-C', ROOT, 'show', 'origin/main:config.js']);
+    const m = src.match(/const series\s*=\s*(\[[\s\S]*?\]);/);
+    if (m) { try { return eval(m[1]); } catch {} }
+  } catch {}
+  // Fall back to local if remote is unreachable
+  return readConfig();
+}
+
 function writeConfig(series) {
   const lines = ['const CLOUDINARY_BASE = "https://res.cloudinary.com/dttbzi3he/image/upload";', '', 'const series = ['];
   series.forEach((s, i) => {
@@ -45,6 +108,17 @@ function writeConfig(series) {
     lines.push(`    title: ${JSON.stringify(s.title)},`);
     lines.push(`    meta: ${JSON.stringify(s.meta)},`);
     if (s.description) lines.push(`    description: ${JSON.stringify(s.description)},`);
+    if (s.essayNote) lines.push(`    essayNote: ${JSON.stringify(s.essayNote)},`);
+    if (s.closingText) lines.push(`    closingText: ${JSON.stringify(s.closingText)},`);
+    if (Array.isArray(s.selectedPhotos) && s.selectedPhotos.length) {
+      lines.push(`    selectedPhotos: ${JSON.stringify(s.selectedPhotos)},`);
+    }
+    if (Array.isArray(s.contactSheetPhotos) && s.contactSheetPhotos.length) {
+      lines.push(`    contactSheetPhotos: ${JSON.stringify(s.contactSheetPhotos)},`);
+    }
+    if (Array.isArray(s.captions) && s.captions.length) {
+      lines.push(`    captions: ${JSON.stringify(s.captions)},`);
+    }
     lines.push(`    folder: ${JSON.stringify(s.folder)},`);
     lines.push(`    photos: [`);
     s.photos.forEach(p => lines.push(`      ${JSON.stringify(p)},`));
@@ -60,9 +134,9 @@ function slugify(s) { return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace
 // ── Image helpers ─────────────────────────────────────────────────────────────
 function getThumb(srcPath) {
   if (CACHE.has(srcPath)) return CACHE.get(srcPath);
-  const dest = join(tmpdir(), 'tcof-thumb-' + Buffer.from(srcPath).toString('base64').slice(0,16) + '.jpg');
+  const dest = join(tmpdir(), 'tcof-thumb-' + createHash('sha1').update(srcPath).digest('hex') + '.jpg');
   if (!existsSync(dest)) {
-    execSync(`sips --resampleWidth 400 --setProperty formatOptions 70 "${srcPath}" --out "${dest}"`, { stdio: 'pipe' });
+    run('sips', ['--resampleWidth', '400', '--setProperty', 'formatOptions', '70', srcPath, '--out', dest]);
   }
   const buf = readFileSync(dest);
   CACHE.set(srcPath, buf);
@@ -72,7 +146,7 @@ function getThumb(srcPath) {
 function compress(src, destDir) {
   const dest = join(destDir, src.split('/').pop());
   if (!existsSync(dest)) {
-    execSync(`sips --resampleWidth 3000 --setProperty formatOptions 82 "${src}" --out "${dest}"`, { stdio: 'pipe' });
+    run('sips', ['--resampleWidth', '3000', '--setProperty', 'formatOptions', '82', src, '--out', dest], { timeout: 180000 });
   }
   return dest;
 }
@@ -113,7 +187,7 @@ async function route(req, res) {
     if (!p || !existsSync(p)) { res.writeHead(404); return res.end(); }
     try {
       const buf = getThumb(p);
-      res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Cache-Control': 'private, max-age=3600' });
+      res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Cache-Control': 'no-store' });
       return res.end(buf);
     } catch { res.writeHead(500); return res.end(); }
   }
@@ -124,10 +198,63 @@ async function route(req, res) {
     return res.end(JSON.stringify(readConfig()));
   }
 
+  // Cloudinary usage
+  if (m === 'GET' && path === '/api/usage') {
+    try {
+      const cld = getCloudinary();
+      const data = await cld.api.usage();
+      const { credits, storage } = data;
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({
+        storageMB: Math.round(storage.usage / 1024 / 1024),
+        credits:   credits.usage,
+        limit:     credits.limit,
+        pct:       credits.used_percent,
+        plan:      data.plan,
+      }));
+    } catch (e) {
+      res.writeHead(500, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: e.message }));
+    }
+  }
+
+  // Delete an entire series (config + Cloudinary folder)
+  if (m === 'POST' && path === '/api/delete-series') {
+    const { slug } = await body(req);
+    const series = readRemoteConfig();
+    const idx = series.findIndex(s => s.slug === slug);
+    if (idx === -1) { res.writeHead(404); return res.end(JSON.stringify({ error: 'series not found' })); }
+    const { folder } = series[idx];
+    // Delete from Cloudinary
+    try {
+      const cld = getCloudinary();
+      await cld.api.delete_resources_by_prefix(folder + '/');
+      await cld.api.delete_folder(folder);
+    } catch (e) {
+      // Non-fatal: folder may already be empty or not exist
+    }
+    // Remove from config
+    series.splice(idx, 1);
+    writeConfig(series);
+    // Commit + push
+    try {
+      run('git', ['-C', ROOT, 'fetch', 'origin', 'main']);
+      run('git', ['-C', ROOT, 'reset', '--mixed', 'origin/main']);
+      run('git', ['-C', ROOT, 'add', 'config.js']);
+      const diff = run('git', ['-C', ROOT, 'diff', '--cached', '--stat']).trim();
+      if (diff) run('git', ['-C', ROOT, 'commit', '-m', `Remove ${slug} series`]);
+      run('git', ['-C', ROOT, 'push']);
+    } catch (e) {
+      // Return ok even if git fails — config is already updated
+    }
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    return res.end(JSON.stringify({ ok: true }));
+  }
+
   // Remove a photo from a series
   if (m === 'POST' && path === '/api/remove-photo') {
     const { slug, filename } = await body(req);
-    const series = readConfig();
+    const series = readRemoteConfig();
     const idx = series.findIndex(s => s.slug === slug);
     if (idx === -1) { res.writeHead(404); return res.end(JSON.stringify({ error: 'series not found' })); }
     series[idx].photos = series[idx].photos.filter(p => p !== filename);
@@ -138,14 +265,24 @@ async function route(req, res) {
 
   // Save metadata only (no upload)
   if (m === 'POST' && path === '/api/save') {
-    const { slug, title, meta, description } = await body(req);
-    const series = readConfig();
+    const { slug, title, meta, description, essayNote, closingText, selectedPhotos, contactSheetPhotos, captions } = await body(req);
+    const series = readRemoteConfig();
     const idx = series.findIndex(s => s.slug === slug);
     if (idx === -1) { res.writeHead(404); return res.end(JSON.stringify({ error: 'not found' })); }
     if (title) series[idx].title = title;
     if (meta)  series[idx].meta  = meta;
     series[idx].description = description || '';
     if (!series[idx].description) delete series[idx].description;
+    series[idx].essayNote = essayNote || '';
+    if (!series[idx].essayNote) delete series[idx].essayNote;
+    series[idx].closingText = closingText || '';
+    if (!series[idx].closingText) delete series[idx].closingText;
+    series[idx].selectedPhotos = Array.isArray(selectedPhotos) ? selectedPhotos.filter(Boolean) : [];
+    if (!series[idx].selectedPhotos.length) delete series[idx].selectedPhotos;
+    series[idx].contactSheetPhotos = Array.isArray(contactSheetPhotos) ? contactSheetPhotos.filter(Boolean) : [];
+    if (!series[idx].contactSheetPhotos.length) delete series[idx].contactSheetPhotos;
+    series[idx].captions = Array.isArray(captions) ? captions.filter(Boolean) : [];
+    if (!series[idx].captions.length) delete series[idx].captions;
     writeConfig(series);
     res.writeHead(200, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ ok: true }));
@@ -192,17 +329,22 @@ async function route(req, res) {
   if (m === 'POST' && path === '/api/deploy') {
     const { slug, count, isNew, title } = await body(req);
     try {
-      execSync(`git -C "${ROOT}" add config.js`, { stdio: 'pipe' });
+      // Fetch remote, then move HEAD to origin/main without touching the
+      // working tree (--mixed) so our already-written config.js is preserved.
+      run('git', ['-C', ROOT, 'fetch', 'origin', 'main']);
+      run('git', ['-C', ROOT, 'reset', '--mixed', 'origin/main']);
+
+      run('git', ['-C', ROOT, 'add', 'config.js']);
 
       // Check if there's anything staged to commit
-      const diff = execSync(`git -C "${ROOT}" diff --cached --stat`, { stdio: 'pipe' }).toString().trim();
+      const diff = run('git', ['-C', ROOT, 'diff', '--cached', '--stat']).trim();
       if (diff) {
         const photoPart = count > 0 ? ` — ${count} photos` : '';
         const msg = isNew ? `Add ${title} series${photoPart}` : `Update ${title} series${photoPart}`;
-        execSync(`git -C "${ROOT}" commit -m "${msg}"`, { stdio: 'pipe' });
+        run('git', ['-C', ROOT, 'commit', '-m', msg]);
       }
 
-      execSync(`git -C "${ROOT}" push`, { stdio: 'pipe' });
+      run('git', ['-C', ROOT, 'push']);
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({ ok: true, url: `https://www.thechroniclesofafilm.com/series.html?s=${slug}` }));
     } catch (e) {
@@ -217,10 +359,15 @@ async function route(req, res) {
 }
 
 // ── Publish job ───────────────────────────────────────────────────────────────
-async function runPublish({ jobId, slug, title, meta, description, folder, hero, isNew }) {
+async function runPublish({ jobId, slug, title, meta, description, essayNote, closingText, selectedPhotos, contactSheetPhotos, captions, folder, hero, isNew, files }) {
+  const cloudinary = getCloudinary();
   const send = e => sendSSE(jobId, e);
   const dir  = resolve(folder.replace(/^~/, homedir()));
-  const allFiles = readdirSync(dir).filter(f => IMG_EXT.test(f)).sort();
+  if (!existsSync(dir)) throw new Error(`Folder not found: ${dir}`);
+  const allFiles = (Array.isArray(files) && files.length)
+    ? files.filter(f => IMG_EXT.test(f))
+    : readdirSync(dir).filter(f => IMG_EXT.test(f)).sort();
+  if (!allFiles.length) throw new Error(`No supported image files found in: ${dir}`);
   const heroFile = allFiles.find(f => f === hero) || allFiles[0];
   const ordered  = [heroFile, ...allFiles.filter(f => f !== heroFile)];
   const tmpDir   = join(tmpdir(), `tcof-${slug}`);
@@ -231,9 +378,16 @@ async function runPublish({ jobId, slug, title, meta, description, folder, hero,
   send({ type: 'phase', phase: 'compress', total });
   const compressed = [];
   for (let i = 0; i < ordered.length; i++) {
-    send({ type: 'progress', phase: 'compress', done: i, total, file: ordered[i] });
-    const dest = compress(join(dir, ordered[i]), tmpDir);
+    const file = ordered[i];
+    send({ type: 'progress', phase: 'compress', done: i, total, file, status: 'working' });
+    let dest;
+    try {
+      dest = compress(join(dir, file), tmpDir);
+    } catch (e) {
+      throw new Error(`Could not compress ${file}: ${e.message}`);
+    }
     compressed.push({ file: ordered[i], dest });
+    send({ type: 'progress', phase: 'compress', done: i + 1, total, file, status: 'done' });
   }
 
   // Upload
@@ -253,16 +407,35 @@ async function runPublish({ jobId, slug, title, meta, description, folder, hero,
     }));
   }
 
-  // Config
-  const series = readConfig();
+  // Config — always base off the remote version so local can never be stale
+  const series = readRemoteConfig();
+  const contentFields = {
+    ...(description ? { description } : {}),
+    ...(essayNote ? { essayNote } : {}),
+    ...(closingText ? { closingText } : {}),
+    ...(Array.isArray(selectedPhotos) && selectedPhotos.length ? { selectedPhotos: selectedPhotos.filter(Boolean) } : {}),
+    ...(Array.isArray(contactSheetPhotos) && contactSheetPhotos.length ? { contactSheetPhotos: contactSheetPhotos.filter(Boolean) } : {}),
+    ...(Array.isArray(captions) && captions.length ? { captions: captions.filter(Boolean) } : {}),
+  };
   if (isNew) {
-    series.push({ slug, title, meta, ...(description ? { description } : {}), folder: cloudFolder, photos: uploaded });
+    series.push({ slug, title, meta, ...contentFields, folder: cloudFolder, photos: uploaded });
   } else {
     const idx = series.findIndex(s => s.slug === slug);
     const heroId = heroFile.replace(/\.[^.]+$/, '').toUpperCase() + '.jpg';
     const merged = [...new Set([...uploaded, ...series[idx].photos])];
     series[idx].photos = [heroId, ...merged.filter(p => p !== heroId)];
-    if (description) series[idx].description = description;
+    series[idx].description = description || '';
+    if (!series[idx].description) delete series[idx].description;
+    series[idx].essayNote = essayNote || '';
+    if (!series[idx].essayNote) delete series[idx].essayNote;
+    series[idx].closingText = closingText || '';
+    if (!series[idx].closingText) delete series[idx].closingText;
+    series[idx].selectedPhotos = Array.isArray(selectedPhotos) ? selectedPhotos.filter(Boolean) : [];
+    if (!series[idx].selectedPhotos.length) delete series[idx].selectedPhotos;
+    series[idx].contactSheetPhotos = Array.isArray(contactSheetPhotos) ? contactSheetPhotos.filter(Boolean) : [];
+    if (!series[idx].contactSheetPhotos.length) delete series[idx].contactSheetPhotos;
+    series[idx].captions = Array.isArray(captions) ? captions.filter(Boolean) : [];
+    if (!series[idx].captions.length) delete series[idx].captions;
     if (meta)  series[idx].meta  = meta;
     if (title) series[idx].title = title;
   }
@@ -343,8 +516,36 @@ header {
   color: var(--muted);
 }
 
-.header-site {
+.storage-pill {
   margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+.storage-bar-track {
+  width: 60px;
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.storage-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.4s ease;
+}
+.storage-bar-fill.warn  { background: #c97b2a; }
+.storage-bar-fill.alert { background: var(--red); }
+
+.header-site {
+  margin-left: 1.2rem;
   font-family: var(--mono);
   font-size: 0.55rem;
   letter-spacing: 0.12em;
@@ -426,6 +627,21 @@ header {
   width: 2px;
   background: var(--accent);
 }
+
+.btn-delete-series {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--red);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 2px 4px;
+  line-height: 1;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+.btn-delete-series:hover { opacity: 1; }
+.series-row:hover .btn-delete-series { display: block; }
 
 .series-thumb {
   width: 44px;
@@ -521,6 +737,35 @@ header {
 .field textarea:focus { border-color: var(--accent); }
 .field textarea { resize: vertical; min-height: 80px; line-height: 1.6; }
 
+/* ── DROP ZONE ── */
+.drop-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(14,14,14,0.85);
+  border: 2px dashed var(--accent);
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+.drop-overlay.active {
+  display: flex;
+  pointer-events: all;
+}
+.drop-overlay-icon {
+  font-size: 2.5rem;
+  opacity: 0.6;
+}
+.drop-overlay-label {
+  font-family: var(--mono);
+  font-size: 0.65rem;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+}
+
 /* ── FOLDER ── */
 .folder-row {
   display: flex;
@@ -579,6 +824,8 @@ header {
 }
 .photo-cell:hover { border-color: var(--muted); }
 .photo-cell.hero  { border-color: var(--accent); }
+.photo-cell.deselected { opacity: 0.25; }
+.photo-cell.deselected:hover { opacity: 0.5; border-color: var(--muted); }
 
 .photo-cell img {
   width: 100%;
@@ -604,6 +851,22 @@ header {
   padding: 2px 0;
 }
 .photo-cell.hero .hero-badge { display: block; }
+
+.photo-grid-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+.photo-grid-header .photo-count {
+  margin: 0;
+}
+.select-all-btns {
+  display: flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
 
 .photo-overlay {
   position: absolute;
@@ -827,10 +1090,16 @@ header {
 </head>
 <body>
 
+<div class="drop-overlay" id="drop-overlay">
+  <div class="drop-overlay-icon">⬇</div>
+  <div class="drop-overlay-label">drop photos or a folder to scan</div>
+</div>
+
 <header>
   <span class="logo">tcof</span>
   <span class="logo-sep">·</span>
   <span class="logo-sub">publisher</span>
+  <div class="storage-pill" id="storage-pill" title="Cloudinary storage usage"></div>
   <a href="https://www.thechroniclesofafilm.com" target="_blank" class="header-site">↗ thechroniclesofafilm.com</a>
 </header>
 
@@ -900,6 +1169,7 @@ let state = {
   isNew: false,
   scanned: [],    // filenames from scan
   scannedDir: '',
+  selected: new Set(), // filenames chosen for upload
   hero: '',
   uploaded: 0,
 };
@@ -909,6 +1179,24 @@ async function boot() {
   const data = await fetch('/api/series').then(r => r.json());
   state.series = data;
   renderSidebar();
+  loadUsage();
+}
+
+async function loadUsage() {
+  const pill = document.getElementById('storage-pill');
+  try {
+    const d = await fetch('/api/usage').then(r => r.json());
+    if (d.error) return;
+    const pct = Math.min(100, Math.round(d.pct * 10) / 10);
+    const colorClass = pct >= 90 ? 'alert' : pct >= 70 ? 'warn' : '';
+    pill.innerHTML = \`
+      <div class="storage-bar-track">
+        <div class="storage-bar-fill \${colorClass}" style="width:\${pct}%"></div>
+      </div>
+      <span>\${d.storageMB} MB · \${d.credits.toFixed(2)}/\${d.limit} credits · \${pct}%</span>
+    \`;
+    pill.title = \`Cloudinary \${d.plan} plan — \${pct}% of monthly credits used\`;
+  } catch {}
 }
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
@@ -918,33 +1206,62 @@ function renderSidebar() {
     const thumb = s.photos.length
       ? \`<img class="series-thumb" src="https://res.cloudinary.com/dttbzi3he/image/upload/f_auto,q_auto,w_88,h_60,c_fill/\${s.folder}/\${s.photos[0]}" onerror="this.style.display='none'">\`
       : '<div class="series-thumb-empty"></div>';
-    return \`<div class="series-row \${state.active === s.slug ? 'active' : ''}" onclick="selectSeries('\${s.slug}')">
+    return \`<div class="series-row \${state.active === s.slug ? 'active' : ''}" data-slug="\${s.slug}" onclick="selectSeries('\${s.slug}')">
       \${thumb}
       <div class="series-info">
         <div class="series-name">\${s.title}</div>
         <div class="series-count">\${s.photos.length} photos · \${s.meta}</div>
       </div>
+      <button class="btn-delete-series" title="delete series" data-slug="\${s.slug}" data-title="\${s.title.replace(/"/g,'&quot;')}">×</button>
     </div>\`;
   }).join('');
+
+  el.querySelectorAll('.btn-delete-series').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      deleteSeries(btn.dataset.slug, btn.dataset.title);
+    });
+  });
+}
+
+function escapeHtml(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function listToText(value) {
+  return Array.isArray(value) ? value.join('\\n') : '';
+}
+
+function listFromText(value) {
+  return String(value || '')
+    .split(/\\r?\\n/)
+    .map(line => line.trim())
+    .filter(Boolean);
 }
 
 // ── Select / New ──────────────────────────────────────────────────────────────
 function selectSeries(slug) {
   const s = state.series.find(x => x.slug === slug);
   if (!s) return;
-  state.active = slug;
-  state.isNew  = false;
-  state.scanned = [];
-  state.hero    = s.photos[0] || '';
+  state.active   = slug;
+  state.isNew    = false;
+  state.scanned  = [];
+  state.selected = new Set();
+  state.hero     = s.photos[0] || '';
   renderSidebar();
   renderForm(s);
 }
 
 function newSeries() {
-  state.active = '__new__';
-  state.isNew  = true;
-  state.scanned = [];
-  state.hero    = '';
+  state.active   = '__new__';
+  state.isNew    = true;
+  state.scanned  = [];
+  state.selected = new Set();
+  state.hero     = '';
   renderSidebar();
   renderForm(null);
 }
@@ -979,7 +1296,27 @@ function renderForm(s) {
         </div>
         <div class="field full">
           <label>intro text</label>
-          <textarea id="f-desc" placeholder="write something about this series…">\${s && s.description ? s.description : ''}</textarea>
+          <textarea id="f-desc" placeholder="write something about this series…">\${escapeHtml(s && s.description ? s.description : '')}</textarea>
+        </div>
+        <div class="field full">
+          <label>essay note</label>
+          <textarea id="f-essay-note" placeholder="shown on the paper interlude…">\${escapeHtml(s && s.essayNote ? s.essayNote : '')}</textarea>
+        </div>
+        <div class="field full">
+          <label>closing text</label>
+          <textarea id="f-closing-text" placeholder="shown near the chapter colophon…">\${escapeHtml(s && s.closingText ? s.closingText : '')}</textarea>
+        </div>
+        <div class="field full">
+          <label>selected frames</label>
+          <textarea id="f-selected-photos" placeholder="one filename per line">\${escapeHtml(listToText(s && s.selectedPhotos))}</textarea>
+        </div>
+        <div class="field full">
+          <label>contact sheet frames</label>
+          <textarea id="f-contact-sheet-photos" placeholder="one filename per line">\${escapeHtml(listToText(s && s.contactSheetPhotos))}</textarea>
+        </div>
+        <div class="field full">
+          <label>captions</label>
+          <textarea id="f-captions" placeholder="one caption per selected frame">\${escapeHtml(listToText(s && s.captions))}</textarea>
         </div>
       </div>
     </div>
@@ -1099,6 +1436,7 @@ async function scanFolder() {
   if (res.error) { setStage('scan', 'error'); setStatus('error', res.error); return; }
   state.scanned    = res.files;
   state.scannedDir = res.dir;
+  state.selected   = new Set(res.files);
   if (!state.hero && res.files.length) state.hero = res.files[0];
   // For existing series, new photos go in the secondary area
   const area = document.getElementById('new-photo-area') || document.getElementById('photo-area');
@@ -1113,12 +1451,22 @@ async function scanFolder() {
 function renderPhotoGrid(files, dir, area) {
   area = area || document.getElementById('photo-area');
   if (!area) return;
+  const selCount = files.filter(f => state.selected.has(f)).length;
   area.innerHTML = \`
-    <p class="photo-count">\${files.length} photos — click to set cover</p>
+    <div class="photo-grid-header">
+      <p class="photo-count" id="photo-count-label">\${selCount} of \${files.length} selected — click to toggle · right-click to set cover</p>
+      <div class="select-all-btns">
+        <button class="btn" onclick="selectAllPhotos()">select all</button>
+        <button class="btn" onclick="deselectAllPhotos()">deselect all</button>
+      </div>
+    </div>
     <div class="photo-grid" id="photo-grid">
       \${files.map(f => \`
-        <div class="photo-cell \${state.hero === f ? 'hero' : ''}" onclick="setHero('\${f}')" title="\${f}">
-          <img src="/api/thumb?path=\${encodeURIComponent(dir + '/' + f)}" loading="lazy" alt="\${f}">
+        <div class="photo-cell \${state.hero === f ? 'hero' : ''} \${state.selected.has(f) ? '' : 'deselected'}"
+             onclick="togglePhoto('\${f}')"
+             oncontextmenu="setHero('\${f}');return false;"
+             title="\${f}">
+          <img src="/api/thumb?path=\${encodeURIComponent(dir + '/' + f)}&v=\${(() => { try { return statSync(dir + '/' + f).mtimeMs | 0; } catch { return 0; } })()}" loading="lazy" alt="\${f}">
           <div class="hero-badge">cover</div>
         </div>
       \`).join('')}
@@ -1126,10 +1474,57 @@ function renderPhotoGrid(files, dir, area) {
   \`;
 }
 
+function selectAllPhotos() {
+  state.scanned.forEach(f => state.selected.add(f));
+  document.querySelectorAll('#photo-grid .photo-cell').forEach(el => el.classList.remove('deselected'));
+  const label = document.getElementById('photo-count-label');
+  if (label) label.textContent = \`\${state.scanned.length} of \${state.scanned.length} selected — click to toggle · right-click to set cover\`;
+  const btn = document.getElementById('btn-upload');
+  if (btn) btn.disabled = false;
+}
+
+function deselectAllPhotos() {
+  state.selected.clear();
+  if (state.hero) state.hero = '';
+  document.querySelectorAll('#photo-grid .photo-cell').forEach(el => {
+    el.classList.add('deselected');
+    el.classList.remove('hero');
+  });
+  const label = document.getElementById('photo-count-label');
+  if (label) label.textContent = \`0 of \${state.scanned.length} selected — click to toggle · right-click to set cover\`;
+  const btn = document.getElementById('btn-upload');
+  if (btn) btn.disabled = true;
+}
+
+function togglePhoto(f) {
+  if (state.selected.has(f)) {
+    state.selected.delete(f);
+    if (state.hero === f) {
+      // assign hero to next selected photo
+      const next = state.scanned.find(x => x !== f && state.selected.has(x));
+      state.hero = next || '';
+    }
+  } else {
+    state.selected.add(f);
+  }
+  const el = document.querySelector(\`.photo-cell[title="\${f}"]\`);
+  if (el) el.classList.toggle('deselected', !state.selected.has(f));
+  const label = document.getElementById('photo-count-label');
+  if (label) {
+    const sel = state.scanned.filter(x => state.selected.has(x)).length;
+    label.textContent = \`\${sel} of \${state.scanned.length} selected — click to toggle · right-click to set cover\`;
+  }
+  // sync upload button
+  const btn = document.getElementById('btn-upload');
+  if (btn) btn.disabled = state.selected.size === 0;
+}
+
 function setHero(f) {
+  if (!state.selected.has(f)) state.selected.add(f);
   state.hero = f;
   document.querySelectorAll('.photo-cell').forEach(el => {
     el.classList.toggle('hero', el.title === f);
+    el.classList.toggle('deselected', !state.selected.has(el.title));
   });
 }
 
@@ -1139,23 +1534,46 @@ async function startUpload() {
   const slug   = document.getElementById('f-slug')?.value.trim();
   const meta   = document.getElementById('f-meta')?.value.trim();
   const desc   = document.getElementById('f-desc')?.value.trim();
+  const essayNote = document.getElementById('f-essay-note')?.value.trim();
+  const closingText = document.getElementById('f-closing-text')?.value.trim();
+  const selectedPhotos = listFromText(document.getElementById('f-selected-photos')?.value);
+  const contactSheetPhotos = listFromText(document.getElementById('f-contact-sheet-photos')?.value);
+  const captions = listFromText(document.getElementById('f-captions')?.value);
   const folder = document.getElementById('f-folder')?.value.trim();
 
   if (!slug || !folder) { setStatus('error', 'fill in slug and folder path'); return; }
   if (!state.scanned.length) { setStatus('error', 'scan a folder first'); return; }
+  if (!state.selected.size)  { setStatus('error', 'no photos selected'); return; }
 
   const jobId = Date.now().toString();
   const pw    = document.getElementById('progress-wrap');
   pw.classList.add('active');
   document.getElementById('btn-upload').disabled = true;
   resetStages();
-  setStage('scan', 'done', state.scanned.length + ' files');
+  setStage('scan', 'done', state.selected.size + ' files');
   setBar(10); setFile('starting…');
 
   // SSE
   const evs = new EventSource(\`/api/progress?id=\${jobId}\`);
+  const connected = new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Could not connect to progress stream. Try upload again.')), 5000);
+    evs.addEventListener('message', e => {
+      try {
+        const msg = JSON.parse(e.data);
+        if (msg.type === 'connected') {
+          clearTimeout(timer);
+          resolve();
+        }
+      } catch {}
+    }, { once: true });
+    evs.onerror = () => {
+      clearTimeout(timer);
+      reject(new Error('Progress stream disconnected. Try upload again.'));
+    };
+  });
   evs.onmessage = e => {
     const msg = JSON.parse(e.data);
+    if (msg.type === 'connected') return;
     if (msg.type === 'phase') {
       if (msg.phase === 'compress') {
         setStage('compress', 'active');
@@ -1169,7 +1587,8 @@ async function startUpload() {
     if (msg.type === 'progress') {
       if (msg.phase === 'compress') {
         const pct = 15 + Math.round((msg.done / msg.total) * 35);
-        setBar(pct); setFile(msg.file);
+        const verb = msg.status === 'done' ? 'compressed' : 'compressing';
+        setBar(pct); setFile(verb + ' ' + msg.done + '/' + msg.total + ': ' + msg.file);
         setStage('compress', 'active', \`\${msg.done}/\${msg.total}\`);
       } else {
         const pct = 50 + Math.round((msg.done / msg.total) * 40);
@@ -1182,6 +1601,7 @@ async function startUpload() {
     if (msg.type === 'done') {
       evs.close();
       state.uploaded = msg.count;
+      state.isNew = false; // series now exists — deploy always available
       setStage('compress', 'done'); setStage('upload', 'done', msg.count + ' photos');
       setBar(90); setFile(\`\${msg.count} photos ready on cloudinary\`);
       document.getElementById('progress-fill').style.width = '100%';
@@ -1194,16 +1614,46 @@ async function startUpload() {
     if (msg.type === 'error') {
       evs.close();
       setStatus('error', msg.message);
-      setStage('upload', 'error');
+      setStage('compress', 'error');
+      setStage('upload', '');
       document.getElementById('btn-upload').disabled = false;
     }
   };
 
   // Start job
-  await fetch('/api/publish', {
-    method: 'POST',
-    body: JSON.stringify({ jobId, slug, title, meta, description: desc, folder, hero: state.hero, isNew: state.isNew }),
-  });
+  try {
+    await connected;
+    const started = await fetch('/api/publish', {
+      method: 'POST',
+      body: JSON.stringify({
+        jobId,
+        slug,
+        title,
+        meta,
+        description: desc,
+        essayNote,
+        closingText,
+        selectedPhotos,
+        contactSheetPhotos,
+        captions,
+        folder,
+        hero: state.hero,
+        isNew: state.isNew,
+        files: [...state.selected],
+      }),
+    }).then(r => r.json());
+    if (started.error) {
+      evs.close();
+      setStage('compress', 'error');
+      setStatus('error', started.error);
+      document.getElementById('btn-upload').disabled = false;
+    }
+  } catch (e) {
+    evs.close();
+    setStage('compress', 'error');
+    setStatus('error', e.message);
+    document.getElementById('btn-upload').disabled = false;
+  }
 }
 
 // ── Deploy ────────────────────────────────────────────────────────────────────
@@ -1212,6 +1662,11 @@ async function deployNow() {
   const title = document.getElementById('f-title')?.value.trim();
   const meta  = document.getElementById('f-meta')?.value.trim();
   const desc  = document.getElementById('f-desc')?.value.trim();
+  const essayNote = document.getElementById('f-essay-note')?.value.trim();
+  const closingText = document.getElementById('f-closing-text')?.value.trim();
+  const selectedPhotos = listFromText(document.getElementById('f-selected-photos')?.value);
+  const contactSheetPhotos = listFromText(document.getElementById('f-contact-sheet-photos')?.value);
+  const captions = listFromText(document.getElementById('f-captions')?.value);
   document.getElementById('btn-deploy').disabled = true;
 
   setStage('deploy', 'active'); setBar(92); setFile('saving changes…');
@@ -1220,7 +1675,17 @@ async function deployNow() {
   if (!state.isNew) {
     const saved = await fetch('/api/save', {
       method: 'POST',
-      body: JSON.stringify({ slug, title, meta, description: desc }),
+      body: JSON.stringify({
+        slug,
+        title,
+        meta,
+        description: desc,
+        essayNote,
+        closingText,
+        selectedPhotos,
+        contactSheetPhotos,
+        captions,
+      }),
     }).then(r => r.json());
     if (saved.error) { setStage('deploy','error'); setStatus('error', saved.error); document.getElementById('btn-deploy').disabled = false; return; }
   }
@@ -1269,7 +1734,92 @@ function setStatus(type, msg) {
   if (type === 'error') setBar(100, 'red');
 }
 
+// ── Delete series ─────────────────────────────────────────────────────────────
+function deleteSeries(slug, title) {
+  const el = document.querySelector(\`.series-row[data-slug="\${slug}"]\`);
+  if (document.getElementById('confirm-delete-' + slug)) return;
+  const box = document.createElement('div');
+  box.id = 'confirm-delete-' + slug;
+  box.style.cssText = 'position:absolute;right:0;top:0;bottom:0;display:flex;align-items:center;gap:6px;padding:0 10px;background:var(--surface2);z-index:10;border-left:1px solid var(--border)';
+  box.innerHTML = \`
+    <span style="font-family:var(--mono);font-size:0.48rem;color:var(--red);letter-spacing:0.08em">delete?</span>
+    <button id="confirm-yes-\${slug}" style="font-family:var(--mono);font-size:0.48rem;letter-spacing:0.1em;color:var(--red);background:none;border:1px solid var(--red);padding:2px 7px;cursor:pointer">yes</button>
+    <button id="confirm-no-\${slug}"  style="font-family:var(--mono);font-size:0.48rem;letter-spacing:0.1em;color:var(--text);background:none;border:1px solid var(--muted);padding:2px 7px;cursor:pointer">no</button>
+  \`;
+  el.appendChild(box);
+  document.getElementById('confirm-no-'  + slug).onclick = e => { e.stopPropagation(); box.remove(); };
+  document.getElementById('confirm-yes-' + slug).onclick = e => { e.stopPropagation(); box.remove(); doDeleteSeries(slug, title); };
+}
+
+async function doDeleteSeries(slug, title) {
+  setFile('deleting series…'); setBar(30);
+  const res = await fetch('/api/delete-series', {
+    method: 'POST',
+    body: JSON.stringify({ slug }),
+  }).then(r => r.json());
+  if (res.error) { setStatus('error', res.error); return; }
+  state.series = state.series.filter(s => s.slug !== slug);
+  if (state.active === slug) {
+    state.active = null;
+    state.isNew  = false;
+    document.getElementById('main-content').innerHTML = \`
+      <div class="empty-state">
+        <div class="empty-state-icon">✦</div>
+        <div class="empty-state-text">select a series or create a new one</div>
+      </div>\`;
+    document.getElementById('action-row').style.display = 'none';
+  }
+  renderSidebar();
+  setBar(100, 'green'); setFile(\`"\${title}" deleted and deployed\`);
+}
+
 boot();
+
+// ── Drag & drop (paths come from native Swift handler) ────────────────────────
+window.handleNativeDrop = async function(paths) {
+  const overlay = document.getElementById('drop-overlay');
+  overlay.classList.remove('active');
+
+  const IMG = /\.(jpe?g|png|tiff?)$/i;
+  const imagePaths = paths.filter(p => IMG.test(p));
+  if (!imagePaths.length) return;
+
+  // If a single folder was dropped, use it directly; otherwise use parent of first file
+  const isFolder = !IMG.test(paths[0]);
+  const folder   = isFolder ? paths[0] : paths[0].split('/').slice(0, -1).join('/');
+  const droppedNames = new Set(imagePaths.map(p => p.split('/').pop()));
+
+  const folderInput = document.getElementById('f-folder');
+  if (!folderInput) { setStatus('error', 'select a series first'); return; }
+  folderInput.value = folder;
+
+  setStage('scan', 'active'); setFile('scanning…');
+  const res = await fetch('/api/scan', { method: 'POST', body: JSON.stringify({ folder }) }).then(r => r.json());
+  if (res.error) { setStage('scan', 'error'); setStatus('error', res.error); return; }
+
+  state.scanned    = res.files;
+  state.scannedDir = res.dir;
+  state.selected   = new Set(res.files.filter(f => droppedNames.has(f)));
+  if (!state.selected.size) state.selected = new Set(res.files);
+  if (!state.hero) state.hero = [...state.selected][0] || '';
+
+  const area = document.getElementById('new-photo-area') || document.getElementById('photo-area');
+  renderPhotoGrid(res.files, res.dir, area);
+
+  document.getElementById('btn-upload').disabled = state.selected.size === 0;
+  setStage('scan', 'done', res.files.length + ' files');
+  setFile(\`\${state.selected.size} of \${res.files.length} photos selected\`);
+};
+
+// Show overlay while dragging over the window (visual feedback only)
+(function () {
+  const overlay = document.getElementById('drop-overlay');
+  let dragDepth = 0;
+  document.addEventListener('dragenter', e => { e.preventDefault(); dragDepth++; overlay.classList.add('active'); });
+  document.addEventListener('dragleave', () => { if (--dragDepth <= 0) { dragDepth = 0; overlay.classList.remove('active'); } });
+  document.addEventListener('dragover',  e => e.preventDefault());
+  document.addEventListener('drop',      e => { e.preventDefault(); dragDepth = 0; overlay.classList.remove('active'); });
+})();
 </script>
 </body>
 </html>`;
@@ -1286,6 +1836,7 @@ server.listen(PORT, '127.0.0.1', () => {
   const url = `http://localhost:${PORT}`;
   console.log(`\n  ✦  tcof publisher\n`);
   console.log(`  \x1b[38;2;189;135;53mopen\x1b[0m  ${url}\n`);
-  // Auto-open browser
-  try { execSync(`open "${url}"`); } catch {}
+  if (process.env.TCOF_NO_AUTO_OPEN !== '1') {
+    try { spawnSync('open', [url]); } catch {}
+  }
 });

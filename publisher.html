@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0e0e0e">
+<meta name="robots" content="noindex">
+<title>tcof studio</title>
+<link rel="manifest" href="/manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Overpass+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="publisher.css">
+</head>
+<body>
+  <main class="publisher-shell">
+    <section class="topbar">
+      <div>
+        <p class="kicker">tcof</p>
+        <h1>studio</h1>
+      </div>
+      <button class="ghost-button" id="settingsBtn" type="button">settings</button>
+    </section>
+
+    <section class="panel" id="setupPanel">
+      <label>
+        Supabase URL
+        <input id="supabaseUrl" type="url" placeholder="https://your-project.supabase.co" autocomplete="off">
+      </label>
+      <label>
+        Publisher token
+        <input id="publisherToken" type="password" placeholder="private token" autocomplete="current-password">
+      </label>
+      <button id="saveSettings" type="button">save</button>
+    </section>
+
+    <section class="studio-tabs" role="tablist" aria-label="Studio workspace">
+      <button class="active" id="siteWorkspace" type="button">site</button>
+      <button id="instagramWorkspace" type="button">instagram</button>
+    </section>
+
+    <div id="siteStudio">
+    <section class="panel">
+      <div class="mode-tabs" role="tablist" aria-label="Publish mode">
+        <button class="active" id="newMode" type="button">new</button>
+        <button id="updateMode" type="button">update</button>
+      </div>
+
+      <label id="existingWrap" hidden>
+        Series
+        <select id="existingSeries"></select>
+      </label>
+
+      <label>
+        Title
+        <input id="title" type="text" placeholder="south korea">
+      </label>
+
+      <label>
+        Slug
+        <input id="slug" type="text" placeholder="south-korea" autocapitalize="none">
+      </label>
+
+      <label>
+        Meta
+        <input id="meta" type="text" placeholder="digital / 35mm">
+      </label>
+
+      <label>
+        Intro
+        <textarea id="description" rows="5" placeholder="optional"></textarea>
+      </label>
+
+      <label>
+        Essay note
+        <textarea id="essayNote" rows="3" placeholder="shown on the paper interlude"></textarea>
+      </label>
+
+      <label>
+        Closing text
+        <textarea id="closingText" rows="3" placeholder="shown near the chapter colophon"></textarea>
+      </label>
+
+      <label>
+        Selected frames
+        <textarea id="selectedPhotos" rows="4" placeholder="one filename per line"></textarea>
+      </label>
+
+      <label>
+        Contact sheet frames
+        <textarea id="contactSheetPhotos" rows="4" placeholder="one filename per line"></textarea>
+      </label>
+
+      <label>
+        Captions
+        <textarea id="captions" rows="5" placeholder="one caption per selected frame"></textarea>
+      </label>
+    </section>
+
+    <section class="panel">
+      <div id="currentPhotosBlock" hidden>
+        <div class="photo-head">
+          <div>
+            <p class="kicker">current</p>
+            <p id="currentPhotoCount">no current photos</p>
+          </div>
+        </div>
+        <div class="photo-grid" id="currentPhotoGrid"></div>
+      </div>
+
+      <div class="photo-head">
+        <div>
+          <p class="kicker">new photos</p>
+          <p id="photoCount">no photos selected</p>
+        </div>
+        <label class="file-button">
+          choose
+          <input id="photos" type="file" accept="image/*" multiple>
+        </label>
+      </div>
+      <div class="photo-grid" id="photoGrid"></div>
+    </section>
+
+    <section class="publish-bar">
+      <div>
+        <p id="statusText">ready</p>
+        <progress id="progress" value="0" max="100"></progress>
+      </div>
+      <button id="publishBtn" type="button">publish</button>
+    </section>
+    </div>
+
+    <div id="instagramStudio" hidden>
+      <section class="panel studio-overview">
+        <div>
+          <p class="kicker">instagram</p>
+          <h2>autogram queue</h2>
+        </div>
+        <div class="stat-grid" aria-label="Queue status">
+          <div>
+            <span id="queuedStat">0</span>
+            <small>queued</small>
+          </div>
+          <div>
+            <span id="approvedStat">0</span>
+            <small>approved</small>
+          </div>
+          <div>
+            <span id="publishedStat">0</span>
+            <small>published</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="photo-head">
+          <div>
+            <p class="kicker">cloudinary</p>
+            <p id="browserCount">choose a folder to browse website photos</p>
+          </div>
+          <button class="ghost-button" id="queueSelectedBtn" type="button">queue</button>
+        </div>
+        <label>
+          Folder
+          <select id="cloudFolder"></select>
+        </label>
+        <label>
+          Search
+          <input id="cloudSearch" type="search" placeholder="filename or folder" autocomplete="off">
+        </label>
+        <div class="photo-grid studio-browser" id="cloudBrowser"></div>
+      </section>
+
+      <section class="panel">
+        <div class="photo-head">
+          <div>
+            <p class="kicker">review</p>
+            <p id="queueCount">no queue copies yet</p>
+          </div>
+          <button class="ghost-button" id="clearSelectionBtn" type="button">clear</button>
+        </div>
+        <div class="queue-list" id="queueList"></div>
+      </section>
+
+      <section class="panel">
+        <div class="photo-head">
+          <div>
+            <p class="kicker">auto queue</p>
+            <p id="autoQueueSummary">disabled</p>
+          </div>
+          <label class="switch-label">
+            <input id="autoQueueEnabled" type="checkbox">
+            <span>enable</span>
+          </label>
+        </div>
+        <div class="settings-grid">
+          <label>
+            Daily posting time
+            <input id="dailyPostTime" type="time" value="09:00">
+          </label>
+          <label>
+            Timezone
+            <input id="postTimezone" type="text" value="Europe/Amsterdam">
+          </label>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script src="publisher-config.js"></script>
+  <script src="config.js"></script>
+  <script src="publisher.js"></script>
+</body>
+</html>

@@ -5,26 +5,56 @@
  */
 
 import { createInterface } from 'readline';
-import { readdirSync, statSync, mkdirSync, existsSync, readFileSync, writeFileSync } from 'fs';
+import { readdirSync, mkdirSync, existsSync, readFileSync, writeFileSync } from 'fs';
 import { join, resolve } from 'path';
-import { execSync } from 'child_process';
+import { spawnSync } from 'child_process';
 import { tmpdir, homedir } from 'os';
 import { createRequire } from 'module';
 
 // ── Cloudinary ───────────────────────────────────────────────────────────────
 const require = createRequire(import.meta.url);
+const ROOT = new URL('.', import.meta.url).pathname;
+
+function loadLocalEnv(filePath) {
+  if (!existsSync(filePath)) return;
+  const lines = readFileSync(filePath, 'utf8').split(/\r?\n/);
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line || line.startsWith('#')) continue;
+    const match = line.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+    if (!match || process.env[match[1]] !== undefined) continue;
+    let value = match[2].trim();
+    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    process.env[match[1]] = value;
+  }
+}
+
+loadLocalEnv(join(ROOT, '.env'));
+
 let cloudinary;
 try {
   cloudinary = require('cloudinary').v2;
-} catch {
-  execSync('npm install cloudinary', { cwd: new URL('.', import.meta.url).pathname, stdio: 'inherit' });
-  cloudinary = require('cloudinary').v2;
+} catch (e) {
+  console.error('Missing dependency: run `npm install` before publishing.');
+  process.exit(1);
 }
-cloudinary.config({
-  cloud_name: 'dttbzi3he',
-  api_key:    '167147487562595',
-  api_secret: 'UkM39bfDbknbKh2FJpoOuPWN9NI',
-});
+
+const CLOUDINARY_CONFIG = {
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dttbzi3he',
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+};
+const missingCloudinary = Object.entries(CLOUDINARY_CONFIG)
+  .filter(([, value]) => !value)
+  .map(([key]) => key);
+if (missingCloudinary.length) {
+  console.error(`Missing Cloudinary environment values: ${missingCloudinary.join(', ')}`);
+  console.error('Use .env.example as a guide, then export those values before publishing.');
+  process.exit(1);
+}
+cloudinary.config(CLOUDINARY_CONFIG);
 
 // ── ANSI ─────────────────────────────────────────────────────────────────────
 const A = {
@@ -89,10 +119,17 @@ function menuItem(n, label, sub = '') {
 }
 
 // ── Config helpers ────────────────────────────────────────────────────────────
-const ROOT   = new URL('.', import.meta.url).pathname;
 const CONFIG = join(ROOT, 'config.js');
 const IMG_EXT = /\.(jpe?g|png|tiff?)$/i;
-const MAX_BYTES = 9.5 * 1024 * 1024;
+
+function run(command, args, options = {}) {
+  const result = spawnSync(command, args, { encoding: 'utf8', ...options });
+  if (result.status !== 0) {
+    const msg = (result.stderr || result.stdout || `${command} failed`).trim();
+    throw new Error(msg);
+  }
+  return result.stdout || '';
+}
 
 function readConfig() {
   const src = readFileSync(CONFIG, 'utf8');
@@ -114,6 +151,17 @@ function writeConfig(series) {
     lines.push(`    title: ${JSON.stringify(s.title)},`);
     lines.push(`    meta: ${JSON.stringify(s.meta)},`);
     if (s.description) lines.push(`    description: ${JSON.stringify(s.description)},`);
+    if (s.essayNote) lines.push(`    essayNote: ${JSON.stringify(s.essayNote)},`);
+    if (s.closingText) lines.push(`    closingText: ${JSON.stringify(s.closingText)},`);
+    if (Array.isArray(s.selectedPhotos) && s.selectedPhotos.length) {
+      lines.push(`    selectedPhotos: ${JSON.stringify(s.selectedPhotos)},`);
+    }
+    if (Array.isArray(s.contactSheetPhotos) && s.contactSheetPhotos.length) {
+      lines.push(`    contactSheetPhotos: ${JSON.stringify(s.contactSheetPhotos)},`);
+    }
+    if (Array.isArray(s.captions) && s.captions.length) {
+      lines.push(`    captions: ${JSON.stringify(s.captions)},`);
+    }
     lines.push(`    folder: ${JSON.stringify(s.folder)},`);
     lines.push(`    photos: [`);
     s.photos.forEach(p => lines.push(`      ${JSON.stringify(p)},`));
@@ -132,7 +180,7 @@ function slugify(str) {
 function compress(src, destDir) {
   const dest = join(destDir, src.split('/').pop());
   if (!existsSync(dest)) {
-    execSync(`sips --resampleWidth 3000 --setProperty formatOptions 82 "${src}" --out "${dest}"`, { stdio: 'pipe' });
+    run('sips', ['--resampleWidth', '3000', '--setProperty', 'formatOptions', '82', src, '--out', dest]);
   }
   return dest;
 }
@@ -308,9 +356,10 @@ async function main() {
       ? `Add ${seriesObj.title} series — ${uploaded.length} photos`
       : `Update ${seriesObj.title} series — ${uploaded.length} photos`;
     try {
-      execSync(`git -C "${ROOT}" add config.js`, { stdio: 'pipe' });
-      execSync(`git -C "${ROOT}" commit -m "${msg}"`, { stdio: 'pipe' });
-      execSync(`git -C "${ROOT}" push`, { stdio: 'pipe' });
+      run('git', ['-C', ROOT, 'add', 'config.js']);
+      const diff = run('git', ['-C', ROOT, 'diff', '--cached', '--stat']).trim();
+      if (diff) run('git', ['-C', ROOT, 'commit', '-m', msg]);
+      run('git', ['-C', ROOT, 'push']);
       ok('pushed to github');
       ok('vercel is deploying…');
       console.log('');
