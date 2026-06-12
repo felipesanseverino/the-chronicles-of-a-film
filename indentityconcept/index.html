@@ -523,7 +523,7 @@
   <header class="site-header">
     <a class="wordmark" href="#top">the <em>chronicles</em> of a film</a>
     <nav class="site-nav" aria-label="primary">
-      <a href="#archive">archive</a>
+      <a href="/indentityconcept/archive/">archive</a>
       <a href="#chapters">chapters</a>
       <a href="#about">about</a>
     </nav>
@@ -684,7 +684,7 @@
   items.forEach((item, index) => {
     const row = document.createElement("a");
     row.className = "archive-row";
-    row.href = `/series.html?s=${item.slug}`;
+    row.href = item.slug === "tokyo-toilet" ? "/indentityconcept/tokyo-toilet/" : `/series.html?s=${item.slug}`;
     row.innerHTML = `
       <span class="archive-meta">roll ${String(47 + index).padStart(3, "0")}</span>
       <span class="archive-title">${item.title}</span>

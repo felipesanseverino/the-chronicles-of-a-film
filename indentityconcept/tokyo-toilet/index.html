@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#1B1A18">
+<meta name="description" content="tokyo toilet chapter concept for the chronicles of a film.">
+<title>tokyo toilet — the chronicles of a film</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Courier+Prime:wght@400&family=Spectral:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    --charcoal: #1B1A18;
+    --ivory: #F2EDE0;
+    --ochre: #C18A2E;
+    --beige: #E6DECC;
+    --grey: #8B857A;
+    --espresso: #3A2E25;
+    --olive: #4B4A37;
+    --display: "Cormorant Garamond", Georgia, serif;
+    --text: "Spectral", Georgia, serif;
+    --mono: "Courier Prime", "Courier New", monospace;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--charcoal);
+    color: var(--ivory);
+    font-family: var(--text);
+    font-size: 18px;
+    line-height: 1.7;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    opacity: 0.075;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
+  }
+
+  a { color: inherit; }
+
+  .site-header {
+    position: fixed;
+    z-index: 30;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 26px max(22px, 8vw);
+    background: linear-gradient(to bottom, rgba(27, 26, 24, 0.92), rgba(27, 26, 24, 0));
+  }
+
+  .wordmark {
+    font-family: var(--display);
+    font-size: clamp(18px, 2.2vw, 25px);
+    font-weight: 300;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .wordmark em {
+    color: var(--ochre);
+    font-style: italic;
+  }
+
+  .site-nav {
+    display: flex;
+    gap: clamp(18px, 3vw, 38px);
+    font-size: 15px;
+  }
+
+  .site-nav a {
+    color: rgba(242, 237, 224, 0.82);
+    text-decoration: none;
+    text-transform: lowercase;
+    border-bottom: 1px solid transparent;
+  }
+
+  .site-nav a:hover,
+  .site-nav a[aria-current="page"] {
+    color: var(--ivory);
+    border-color: var(--ochre);
+  }
+
+  .chapter-hero {
+    min-height: 100svh;
+    display: grid;
+    grid-template-columns: minmax(0, 0.86fr) minmax(360px, 0.64fr);
+    gap: min(5vw, 70px);
+    align-items: end;
+    padding: 118px max(22px, 8vw) 8vh;
+  }
+
+  .hero-image {
+    width: 100%;
+    height: min(74svh, 760px);
+    object-fit: cover;
+    background: #11100f;
+    filter: contrast(1.02) saturate(0.92);
+  }
+
+  .kicker,
+  .photo-meta,
+  .colophon,
+  .footer-meta {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--grey);
+    text-transform: lowercase;
+  }
+
+  .hero-copy h1 {
+    margin: 18px 0 20px;
+    font-family: var(--display);
+    font-size: clamp(62px, 9vw, 132px);
+    font-style: italic;
+    font-weight: 300;
+    line-height: 0.86;
+  }
+
+  .hero-copy p {
+    max-width: 48ch;
+    margin: 0;
+    color: rgba(242, 237, 224, 0.76);
+    font-size: clamp(18px, 2vw, 23px);
+    line-height: 1.58;
+  }
+
+  .paper-note {
+    padding: 13vh max(22px, 8vw);
+    background: var(--beige);
+    color: var(--espresso);
+  }
+
+  .paper-note-inner {
+    max-width: 850px;
+  }
+
+  .paper-note p {
+    margin: 18px 0 0;
+    font-size: clamp(24px, 4vw, 48px);
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 300;
+    line-height: 1.1;
+  }
+
+  .sequence {
+    padding: 14vh max(22px, 8vw);
+  }
+
+  .sequence-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+
+  .sequence-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    align-items: baseline;
+    padding-bottom: 18px;
+    margin-bottom: 96px;
+    border-bottom: 1px solid rgba(139, 133, 122, 0.28);
+  }
+
+  .sequence-head h2 {
+    margin: 0;
+    font-family: var(--display);
+    font-size: clamp(36px, 5vw, 66px);
+    font-style: italic;
+    font-weight: 300;
+    line-height: 1;
+  }
+
+  .photo-sequence {
+    display: grid;
+    gap: 118px;
+  }
+
+  .photo-frame {
+    margin: 0;
+  }
+
+  .photo-frame:nth-child(3n + 1) { width: 82%; }
+  .photo-frame:nth-child(3n + 2) { width: 58%; margin-left: auto; }
+  .photo-frame:nth-child(3n) { width: 70%; margin-left: 10%; }
+
+  .photo-frame img {
+    width: 100%;
+    display: block;
+    background: #11100f;
+    object-fit: cover;
+    filter: contrast(1.02) saturate(0.94);
+  }
+
+  .photo-frame figcaption {
+    margin-top: 13px;
+    color: var(--grey);
+    font-size: 15px;
+    font-style: italic;
+  }
+
+  .contact-sheet {
+    padding: 13vh max(22px, 8vw);
+    background: #211f1c;
+  }
+
+  .contact-sheet-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+
+  .contact-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  .contact-head h2 {
+    margin: 0;
+    font-family: var(--display);
+    font-size: clamp(34px, 5vw, 62px);
+    font-style: italic;
+    font-weight: 300;
+  }
+
+  .contact-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+  }
+
+  .contact-item {
+    margin: 0;
+    background: #11100f;
+  }
+
+  .contact-item img {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    display: block;
+    object-fit: cover;
+    filter: contrast(1.03) saturate(0.86);
+  }
+
+  .contact-item figcaption {
+    padding: 7px 7px 9px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--grey);
+  }
+
+  .chapter-end {
+    padding: 12vh max(22px, 8vw);
+  }
+
+  .chapter-end-inner {
+    max-width: 920px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.46fr);
+    gap: min(7vw, 88px);
+    align-items: start;
+  }
+
+  .chapter-end p {
+    margin: 0;
+    font-size: clamp(20px, 2.2vw, 28px);
+    color: rgba(242, 237, 224, 0.76);
+  }
+
+  .site-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 28px;
+    padding: 38px max(22px, 8vw);
+    border-top: 1px solid rgba(139, 133, 122, 0.24);
+    color: var(--grey);
+  }
+
+  .site-footer a {
+    color: var(--ochre);
+    text-decoration: none;
+  }
+
+  @media (max-width: 860px) {
+    .site-header {
+      align-items: flex-start;
+      padding-top: 20px;
+    }
+
+    .site-nav {
+      gap: 14px;
+      font-size: 14px;
+    }
+
+    .chapter-hero {
+      grid-template-columns: 1fr;
+      padding-top: 98px;
+      min-height: 0;
+    }
+
+    .hero-image {
+      height: auto;
+      aspect-ratio: 4 / 5;
+    }
+
+    .paper-note,
+    .sequence,
+    .contact-sheet,
+    .chapter-end {
+      padding-top: 86px;
+      padding-bottom: 86px;
+    }
+
+    .sequence-head,
+    .contact-head {
+      display: block;
+      margin-bottom: 54px;
+    }
+
+    .photo-sequence {
+      gap: 74px;
+    }
+
+    .photo-frame,
+    .photo-frame:nth-child(3n + 1),
+    .photo-frame:nth-child(3n + 2),
+    .photo-frame:nth-child(3n) {
+      width: 100%;
+      margin-left: 0;
+    }
+
+    .contact-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 7px;
+    }
+
+    .chapter-end-inner {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+
+    .site-footer { display: block; }
+    .footer-meta + .footer-meta { margin-top: 10px; }
+  }
+</style>
+</head>
+<body>
+  <header class="site-header">
+    <a class="wordmark" href="/indentityconcept/">the <em>chronicles</em> of a film</a>
+    <nav class="site-nav" aria-label="primary">
+      <a href="/indentityconcept/archive/">archive</a>
+      <a href="/indentityconcept/tokyo-toilet/" aria-current="page">tokyo toilet</a>
+      <a href="/indentityconcept/#about">about</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="chapter-hero" aria-label="chapter opening">
+      <img class="hero-image" id="hero-image" alt="tokyo toilet opening frame">
+      <div class="hero-copy">
+        <div class="kicker" id="chapter-meta">roll 048 — tokyo — digital</div>
+        <h1>tokyo toilet</h1>
+        <p id="chapter-description">
+          usually i am not the one choosing where to go on holiday. this time was different.
+          i had to walk the city for these public rooms, one frame at a time.
+        </p>
+      </div>
+    </section>
+
+    <section class="paper-note" aria-label="chapter note">
+      <div class="paper-note-inner">
+        <div class="kicker">essay note</div>
+        <p>seventeen public rooms, treated less like landmarks and more like quiet interruptions in the day.</p>
+      </div>
+    </section>
+
+    <section class="sequence" aria-label="selected sequence">
+      <div class="sequence-inner">
+        <div class="sequence-head">
+          <h2>selected frames</h2>
+          <span class="photo-meta" id="selected-count"></span>
+        </div>
+        <div class="photo-sequence" id="photo-sequence"></div>
+      </div>
+    </section>
+
+    <section class="contact-sheet" aria-label="contact sheet">
+      <div class="contact-sheet-inner">
+        <div class="contact-head">
+          <h2>contact sheet</h2>
+          <span class="photo-meta">process view</span>
+        </div>
+        <div class="contact-grid" id="contact-grid"></div>
+      </div>
+    </section>
+
+    <section class="chapter-end" aria-label="chapter colophon">
+      <div class="chapter-end-inner">
+        <p>
+          the test here is the rhythm: one opening image, a short note, a slow sequence,
+          and a small contact sheet at the end.
+        </p>
+        <div class="colophon" id="colophon">tokyo, jp · digital · 12 frames kept</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-meta">tokyo toilet — identity concept test</div>
+    <div class="footer-meta"><a href="/series.html?s=tokyo-toilet">current series page</a></div>
+  </footer>
+
+<script src="/config.js"></script>
+<script>
+  const captions = [
+    "shibuya, afternoon. the glass held the color longer than the street did.",
+    "a public room, treated like a small civic promise.",
+    "tokyo, walked slowly. architecture as pause.",
+    "surface, shadow, door, frame.",
+    "nobody was in a hurry, including the light.",
+    "the map became a sequence before it became a place."
+  ];
+
+  function imageUrl(item, photo, width = 1400, crop = "") {
+    const transform = crop ? `f_auto,q_auto,w_${width},${crop}` : `f_auto,q_auto,w_${width}`;
+    return `${CLOUDINARY_BASE}/${transform}/${item.folder}/${encodeURIComponent(photo)}`;
+  }
+
+  const sourceSeries = typeof series !== "undefined" && Array.isArray(series) ? series : [];
+  const chapter = sourceSeries.find((item) => item.slug === "tokyo-toilet");
+
+  if (chapter) {
+    document.title = `${chapter.title.toLowerCase()} — the chronicles of a film`;
+    document.getElementById("chapter-meta").textContent = `roll 048 — tokyo — ${chapter.meta.toLowerCase()}`;
+    document.getElementById("selected-count").textContent = `${chapter.photos.length} frames`;
+    document.getElementById("colophon").textContent = `tokyo, jp · ${chapter.meta.toLowerCase()} · ${chapter.photos.length} frames kept`;
+    if (chapter.description) {
+      document.getElementById("chapter-description").textContent = chapter.description
+        .replace(/\s*more info about the project here:.*/i, "")
+        .trim();
+    }
+
+    const heroPhoto = chapter.photos[1] || chapter.photos[0];
+    document.getElementById("hero-image").src = imageUrl(chapter, heroPhoto, 1800);
+
+    const selected = chapter.photos.slice(0, 6);
+    const sequence = document.getElementById("photo-sequence");
+    selected.forEach((photo, index) => {
+      const figure = document.createElement("figure");
+      figure.className = "photo-frame";
+      figure.innerHTML = `
+        <img src="${imageUrl(chapter, photo, index < 2 ? 1500 : 1200)}" alt="tokyo toilet frame ${index + 1}" loading="${index < 2 ? "eager" : "lazy"}">
+        <figcaption>${captions[index] || "tokyo, walked slowly."}</figcaption>
+      `;
+      sequence.appendChild(figure);
+    });
+
+    const contact = document.getElementById("contact-grid");
+    chapter.photos.forEach((photo, index) => {
+      const figure = document.createElement("figure");
+      figure.className = "contact-item";
+      figure.innerHTML = `
+        <img src="${imageUrl(chapter, photo, 520, "c_fill,ar_1:1")}" alt="contact frame ${index + 1}" loading="lazy">
+        <figcaption>${String(index + 1).padStart(3, "0")}</figcaption>
+      `;
+      contact.appendChild(figure);
+    });
+  }
+</script>
+</body>
+</html>
