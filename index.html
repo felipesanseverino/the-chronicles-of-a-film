@@ -645,7 +645,6 @@
 
     return sourceSeries
       .filter((item) => item.photos && item.photos.length)
-      .slice(0, 7)
       .map((item, index) => ({
         slug: item.slug,
         title: item.title.toLowerCase(),
