@@ -3,338 +3,495 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#0e0e0e">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="tcof">
-<title>Series — the chronicles of a film</title>
-<link rel="icon" type="image/png" href="/favicon.png">
-<link rel="apple-touch-icon" href="/icon-192.png">
-<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#1B1A18">
+<meta name="description" content="a photo chapter from the chronicles of a film.">
+<title>chapter — the chronicles of a film</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Overpass+Mono:wght@300;400&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Courier+Prime:wght@400&family=Spectral:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
 <style>
-  /* ── PAGE HEADER ── */
-  .series-header {
-    min-height: 55vh;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding-top: 6rem;
+  *, *::before, *::after { box-sizing: border-box; }
+
+  :root {
+    --charcoal: #1B1A18;
+    --ivory: #F2EDE0;
+    --ochre: #C18A2E;
+    --beige: #E6DECC;
+    --grey: #8B857A;
+    --espresso: #3A2E25;
+    --olive: #4B4A37;
+    --display: "Cormorant Garamond", Georgia, serif;
+    --text: "Spectral", Georgia, serif;
+    --mono: "Courier Prime", "Courier New", monospace;
   }
 
-  .series-header-left {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    padding: 4rem 3rem;
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--charcoal);
+    color: var(--ivory);
+    font-family: var(--text);
+    font-size: 18px;
+    line-height: 1.7;
   }
 
-  .back-link {
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    letter-spacing: 0.2em;
-    text-transform: lowercase;
-    color: var(--muted);
-    text-decoration: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin-bottom: 2.5rem;
-    transition: color 0.2s;
-  }
-  .back-link::before { content: '←'; }
-  .back-link:hover { color: var(--accent); }
-
-  .series-eyebrow {
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    letter-spacing: 0.25em;
-    text-transform: lowercase;
-    color: var(--muted);
-    margin-bottom: 1.5rem;
-  }
-
-  .series-page-title {
-    font-family: var(--serif);
-    font-size: clamp(3rem, 6vw, 5.5rem);
-    font-weight: 400;
-    line-height: 0.95;
-    color: var(--white);
-    margin-bottom: 1.5rem;
-    text-transform: lowercase;
-  }
-
-  .series-page-meta {
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    letter-spacing: 0.2em;
-    text-transform: lowercase;
-    color: var(--muted);
-    margin-bottom: 2rem;
-  }
-
-  .series-description {
-    font-family: var(--serif);
-    font-size: 1rem;
-    line-height: 1.85;
-    color: var(--muted);
-    font-style: italic;
-    max-width: 44ch;
-  }
-
-  .series-header-right {
-    position: relative;
-    overflow: hidden;
-    aspect-ratio: 1 / 1;
-    align-self: center;
-  }
-
-  .series-hero-img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    filter: grayscale(15%) contrast(1.05);
-    cursor: crosshair;
-    transition: filter 0.6s;
-  }
-
-  .series-hero-img:hover { filter: grayscale(0%); }
-
-  .series-hero-overlay {
-    position: absolute;
+  body::before {
+    content: "";
+    position: fixed;
     inset: 0;
-    background: linear-gradient(to right, var(--bg) 0%, transparent 25%);
+    z-index: 20;
+    opacity: 0.075;
     pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.45'/%3E%3C/svg%3E");
   }
 
-  /* ── PHOTO GRID ── */
-  .photos-section {
-    padding: 5rem 3rem 8rem;
+  a { color: inherit; }
+
+  .site-header {
+    position: fixed;
+    z-index: 30;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 26px max(22px, 8vw);
+    background: linear-gradient(to bottom, rgba(27, 26, 24, 0.92), rgba(27, 26, 24, 0));
   }
 
-  .photos-header {
+  .wordmark {
+    font-family: var(--display);
+    font-size: clamp(18px, 2.2vw, 25px);
+    font-weight: 300;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .wordmark em {
+    color: var(--ochre);
+    font-style: italic;
+  }
+
+  .site-nav {
+    display: flex;
+    gap: clamp(18px, 3vw, 38px);
+    font-size: 15px;
+  }
+
+  .site-nav a {
+    color: rgba(242, 237, 224, 0.82);
+    text-decoration: none;
+    text-transform: lowercase;
+    border-bottom: 1px solid transparent;
+  }
+
+  .site-nav a:hover,
+  .site-nav a[aria-current="page"] {
+    color: var(--ivory);
+    border-color: var(--ochre);
+  }
+
+  .chapter-hero {
+    min-height: 100svh;
+    display: grid;
+    grid-template-columns: minmax(0, 0.86fr) minmax(360px, 0.64fr);
+    gap: min(5vw, 70px);
+    align-items: end;
+    padding: 118px max(22px, 8vw) 8vh;
+  }
+
+  .hero-image {
+    width: 100%;
+    height: min(74svh, 760px);
+    object-fit: cover;
+    background: #11100f;
+    filter: contrast(1.02) saturate(0.92);
+  }
+
+  .kicker,
+  .photo-meta,
+  .colophon,
+  .footer-meta {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--grey);
+    text-transform: lowercase;
+  }
+
+  .hero-copy h1 {
+    margin: 18px 0 20px;
+    font-family: var(--display);
+    font-size: clamp(62px, 9vw, 132px);
+    font-style: italic;
+    font-weight: 300;
+    line-height: 0.86;
+  }
+
+  .hero-copy p {
+    max-width: 48ch;
+    margin: 0;
+    color: rgba(242, 237, 224, 0.76);
+    font-size: clamp(18px, 2vw, 23px);
+    line-height: 1.58;
+  }
+
+  .paper-note {
+    padding: 13vh max(22px, 8vw);
+    background: var(--beige);
+    color: var(--espresso);
+  }
+
+  .paper-note-inner {
+    max-width: 850px;
+  }
+
+  .paper-note p {
+    margin: 18px 0 0;
+    font-size: clamp(24px, 4vw, 48px);
+    font-family: var(--display);
+    font-style: italic;
+    font-weight: 300;
+    line-height: 1.1;
+  }
+
+  .sequence {
+    padding: 14vh max(22px, 8vw);
+  }
+
+  .sequence-inner {
+    max-width: 1080px;
+    margin: 0 auto;
+  }
+
+  .sequence-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    align-items: baseline;
+    padding-bottom: 18px;
+    margin-bottom: 96px;
+    border-bottom: 1px solid rgba(139, 133, 122, 0.28);
+  }
+
+  .sequence-head h2 {
+    margin: 0;
+    font-family: var(--display);
+    font-size: clamp(36px, 5vw, 66px);
+    font-style: italic;
+    font-weight: 300;
+    line-height: 1;
+  }
+
+  .photo-sequence {
+    display: grid;
+    gap: 118px;
+  }
+
+  .photo-frame {
+    margin: 0;
+  }
+
+  .photo-frame:nth-child(3n + 1) { width: 82%; }
+  .photo-frame:nth-child(3n + 2) { width: 58%; margin-left: auto; }
+  .photo-frame:nth-child(3n) { width: 70%; margin-left: 10%; }
+
+  .photo-frame img {
+    width: 100%;
+    display: block;
+    background: #11100f;
+    object-fit: cover;
+    filter: contrast(1.02) saturate(0.94);
+  }
+
+  .photo-frame figcaption {
+    margin-top: 13px;
+    color: var(--grey);
+    font-size: 15px;
+    font-style: italic;
+  }
+
+  .contact-sheet {
+    padding: 13vh max(22px, 8vw);
+    background: #211f1c;
+  }
+
+  .contact-sheet-inner {
+    max-width: 1180px;
+    margin: 0 auto;
+  }
+
+  .contact-head {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 1.5rem;
-    margin-bottom: 4rem;
+    gap: 24px;
+    margin-bottom: 32px;
   }
 
-  .photos-label {
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    letter-spacing: 0.25em;
-    text-transform: lowercase;
-    color: var(--muted);
+  .contact-head h2 {
+    margin: 0;
+    font-family: var(--display);
+    font-size: clamp(34px, 5vw, 62px);
+    font-style: italic;
+    font-weight: 300;
   }
 
-  .photos-count {
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    color: var(--muted);
+  .contact-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
   }
 
-  .photo-grid {
-    columns: 3;
-    column-gap: 1rem;
+  .contact-item {
+    margin: 0;
+    background: #11100f;
   }
 
-  .photo-item {
-    position: relative;
-    overflow: hidden;
-    cursor: crosshair;
-    break-inside: avoid;
-    margin-bottom: 1rem;
-  }
-
-  .photo-item img {
+  .contact-item img {
     width: 100%;
-    height: auto;
+    aspect-ratio: 1 / 1;
     display: block;
-    filter: grayscale(15%) contrast(1.02);
-    transition: filter 0.5s, transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    object-fit: cover;
+    filter: contrast(1.03) saturate(0.86);
   }
 
-  .photo-item:hover img {
-    filter: grayscale(0%);
-    transform: scale(1.02);
-  }
-
-  .photo-index {
-    position: absolute;
-    bottom: 0.8rem;
-    right: 0.8rem;
+  .contact-item figcaption {
+    padding: 7px 7px 9px;
     font-family: var(--mono);
-    font-size: 0.5rem;
-    letter-spacing: 0.15em;
-    color: rgba(255,255,255,0.4);
-    pointer-events: none;
+    font-size: 10px;
+    color: var(--grey);
   }
 
-  /* ── MOBILE ── */
-  @media (max-width: 768px) {
-    .series-header { grid-template-columns: 1fr; min-height: auto; }
-    .series-header-right { height: auto; order: -1; }
-    .series-hero-overlay { background: linear-gradient(to bottom, transparent 60%, var(--bg) 100%); }
-    .series-header-left { padding: 2rem 1.25rem 2.5rem; }
-    .back-link { margin-bottom: 1.5rem; }
-    .series-page-title { font-size: clamp(2.5rem, 9vw, 4rem); }
-    .series-description { max-width: 100%; font-size: 0.9rem; }
-    .photos-section { padding: 2.5rem 1.25rem 4rem; }
-    .photos-header { margin-bottom: 2rem; }
-    .photo-grid { columns: 2; column-gap: 0.5rem; }
-    .photo-item { margin-bottom: 0.5rem; }
+  .chapter-end {
+    padding: 12vh max(22px, 8vw);
   }
 
-  @media (max-width: 480px) {
-    .photo-grid { columns: 1; }
-    .series-page-title { font-size: clamp(2.2rem, 10vw, 3rem); }
+  .chapter-end-inner {
+    max-width: 920px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.46fr);
+    gap: min(7vw, 88px);
+    align-items: start;
+  }
+
+  .chapter-end p {
+    margin: 0;
+    font-size: clamp(20px, 2.2vw, 28px);
+    color: rgba(242, 237, 224, 0.76);
+  }
+
+  .site-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 28px;
+    padding: 38px max(22px, 8vw);
+    border-top: 1px solid rgba(139, 133, 122, 0.24);
+    color: var(--grey);
+  }
+
+  .site-footer a {
+    color: var(--ochre);
+    text-decoration: none;
+  }
+
+  @media (max-width: 860px) {
+    .site-header {
+      align-items: flex-start;
+      padding-top: 20px;
+    }
+
+    .site-nav {
+      gap: 14px;
+      font-size: 14px;
+    }
+
+    .chapter-hero {
+      grid-template-columns: 1fr;
+      padding-top: 98px;
+      min-height: 0;
+    }
+
+    .hero-image {
+      height: auto;
+      aspect-ratio: 4 / 5;
+    }
+
+    .paper-note,
+    .sequence,
+    .contact-sheet,
+    .chapter-end {
+      padding-top: 86px;
+      padding-bottom: 86px;
+    }
+
+    .sequence-head,
+    .contact-head {
+      display: block;
+      margin-bottom: 54px;
+    }
+
+    .photo-sequence {
+      gap: 74px;
+    }
+
+    .photo-frame,
+    .photo-frame:nth-child(3n + 1),
+    .photo-frame:nth-child(3n + 2),
+    .photo-frame:nth-child(3n) {
+      width: 100%;
+      margin-left: 0;
+    }
+
+    .contact-grid {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 7px;
+    }
+
+    .chapter-end-inner {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+
+    .site-footer { display: block; }
+    .footer-meta + .footer-meta { margin-top: 10px; }
   }
 </style>
 </head>
 <body>
+  <header class="site-header">
+    <a class="wordmark" href="/">the <em>chronicles</em> of a film</a>
+    <nav class="site-nav" aria-label="primary">
+      <a href="/archive.html">archive</a>
+      <a href="/#chapters" aria-current="page">chapters</a>
+      <a href="/#about">about</a>
+    </nav>
+  </header>
 
-<nav>
-  <a href="index.html" class="nav-logo">tcof</a>
-  <ul class="nav-links">
-    <li><a href="index.html">Home</a></li>
-    <li><a href="index.html#archives">Archives</a></li>
-  </ul>
-</nav>
+  <main>
+    <section class="chapter-hero" aria-label="chapter opening">
+      <img class="hero-image" id="hero-image" alt="chapter opening frame">
+      <div class="hero-copy">
+        <div class="kicker" id="chapter-meta">loading chapter</div>
+        <h1 id="chapter-title">chapter</h1>
+        <p id="chapter-description">
+          every roll, numbered and kept.
+        </p>
+      </div>
+    </section>
 
-<!-- SERIES HEADER -->
-<div class="series-header" id="series-header">
-  <div class="series-header-left">
-    <a href="index.html#archives" class="back-link reveal">Archives</a>
-    <p class="series-eyebrow reveal" id="series-eyebrow">series</p>
-    <h1 class="series-page-title reveal" id="series-page-title"></h1>
-    <p class="series-page-meta reveal" id="series-page-meta"></p>
-    <p class="series-description reveal" id="series-description"></p>
-  </div>
-  <div class="series-header-right">
-    <img class="series-hero-img" id="series-hero-img" src="" alt="" loading="eager">
-    <div class="series-hero-overlay"></div>
-  </div>
-</div>
+    <section class="paper-note" aria-label="chapter note">
+      <div class="paper-note-inner">
+        <div class="kicker">essay note</div>
+        <p id="essay-note">a few frames, a few lines, and the room to look slowly.</p>
+      </div>
+    </section>
 
-<!-- PHOTO GRID -->
-<section class="photos-section">
-  <div class="photos-header reveal">
-    <span class="photos-label">Photographs</span>
-    <span class="photos-count" id="photos-count"></span>
-  </div>
-  <div class="photo-grid" id="photo-grid"></div>
-</section>
+    <section class="sequence" aria-label="selected sequence">
+      <div class="sequence-inner">
+        <div class="sequence-head">
+          <h2>selected frames</h2>
+          <span class="photo-meta" id="selected-count"></span>
+        </div>
+        <div class="photo-sequence" id="photo-sequence"></div>
+      </div>
+    </section>
 
-<footer>
-  <span>the chronicles of a film · felipe martins</span>
-  <span>digital · 35mm · medium format</span>
-</footer>
+    <section class="contact-sheet" aria-label="contact sheet">
+      <div class="contact-sheet-inner">
+        <div class="contact-head">
+          <h2>contact sheet</h2>
+          <span class="photo-meta">process view</span>
+        </div>
+        <div class="contact-grid" id="contact-grid"></div>
+      </div>
+    </section>
 
-<!-- Lightbox -->
-<div class="lightbox" id="lightbox" role="dialog" aria-modal="true">
-  <div class="lightbox-inner">
-    <span class="lightbox-title" id="lb-title"></span>
-    <button class="lightbox-close" aria-label="Close">Esc / close</button>
-    <button class="lightbox-nav lightbox-prev" aria-label="Previous">←</button>
-    <img class="lightbox-img" src="" alt="">
-    <button class="lightbox-nav lightbox-next" aria-label="Next">→</button>
-    <span class="lightbox-meta"></span>
-  </div>
-</div>
+    <section class="chapter-end" aria-label="chapter colophon">
+      <div class="chapter-end-inner">
+        <p>
+          one opening image, a short note, a slow sequence, and a small contact sheet at the end.
+        </p>
+        <div class="colophon" id="colophon">loading frames</div>
+      </div>
+    </section>
+  </main>
 
-<script src="config.js"></script>
+  <footer class="site-footer">
+    <div class="footer-meta" id="footer-title">the chronicles of a film</div>
+    <div class="footer-meta"><a href="/archive.html">archive</a></div>
+  </footer>
+
+<script src="/config.js"></script>
 <script>
-  // Get slug from URL
+  const fallbackCaptions = [
+    "a frame kept for the way the light stayed.",
+    "the kind of pause that turns into a chapter.",
+    "a quiet detail, seen slowly.",
+    "surface, shadow, door, frame.",
+    "nobody was in a hurry, including the light.",
+    "the sequence finds its own weather."
+  ];
+
+  function imageUrl(item, photo, width = 1400, crop = "") {
+    const transform = crop ? `f_auto,q_auto,w_${width},${crop}` : `f_auto,q_auto,w_${width}`;
+    return `${CLOUDINARY_BASE}/${transform}/${item.folder}/${encodeURIComponent(photo)}`;
+  }
+
+  const sourceSeries = typeof series !== "undefined" && Array.isArray(series) ? series : [];
   const params = new URLSearchParams(window.location.search);
-  const slug = params.get('s');
-  const s = series.find(x => x.slug === slug);
+  const requestedSlug = params.get("s");
+  const chapter = sourceSeries.find((item) => item.slug === requestedSlug) || sourceSeries[0];
+  const chapterIndex = Math.max(0, sourceSeries.indexOf(chapter));
 
-  if (!s) {
-    document.querySelector('.series-page-title').textContent = 'Series not found';
-  } else {
-    // Update page title
-    document.title = `${s.title} — the chronicles of a film`;
+  if (chapter) {
+    document.title = `${chapter.title.toLowerCase()} — the chronicles of a film`;
+    document.getElementById("chapter-title").textContent = chapter.title.toLowerCase();
+    document.getElementById("chapter-meta").textContent = `roll ${String(47 + chapterIndex).padStart(3, "0")} — ${chapter.meta.toLowerCase()}`;
+    document.getElementById("selected-count").textContent = `${chapter.photos.length} frames`;
+    document.getElementById("colophon").textContent = `${chapter.title.toLowerCase()} · ${chapter.meta.toLowerCase()} · ${chapter.photos.length} frames kept`;
+    document.getElementById("footer-title").textContent = `${chapter.title.toLowerCase()} · the chronicles of a film`;
+    if (chapter.description) {
+      document.getElementById("chapter-description").textContent = chapter.description
+        .replace(/\s*more info about the project here:.*/i, "")
+        .trim();
+    }
+    document.getElementById("essay-note").textContent =
+      chapter.slug === "tokyo-toilet"
+        ? "seventeen public rooms, treated less like landmarks and more like quiet interruptions in the day."
+        : "a few frames from the chapter, sequenced slowly and left with enough room to breathe.";
 
-    // Header
-    document.getElementById('series-page-title').textContent = s.title;
-    document.getElementById('series-page-meta').textContent = s.meta;
-    const descEl = document.getElementById('series-description');
-    if (s.description) { descEl.textContent = s.description; } else { descEl.style.display = 'none'; }
-    document.getElementById('series-eyebrow').textContent =
-      `${String(series.indexOf(s) + 1).padStart(2,'0')} / ${series.length} series`;
+    const heroPhoto = chapter.photos[1] || chapter.photos[0];
+    document.getElementById("hero-image").src = imageUrl(chapter, heroPhoto, 1800);
 
-    // Hero (first photo)
-    const heroImg = document.getElementById('series-hero-img');
-    heroImg.src = `${CLOUDINARY_BASE}/f_auto,q_auto,w_1400,h_1400,c_fill/${s.folder}/${s.photos[0]}`;
-    heroImg.alt = s.title;
-
-    // Photo count
-    document.getElementById('photos-count').textContent = `${s.photos.length} photographs`;
-
-    // Grid
-    const grid = document.getElementById('photo-grid');
-    const fullUrls = s.photos.map(p => `${CLOUDINARY_BASE}/f_auto,q_auto,w_1400/${s.folder}/${p}`);
-
-    s.photos.forEach((p, i) => {
-      const thumb = `${CLOUDINARY_BASE}/f_auto,q_auto,w_800/${s.folder}/${p}`;
-      const item = document.createElement('div');
-      item.className = 'photo-item reveal';
-      item.style.transitionDelay = `${i * 0.05}s`;
-      item.innerHTML = `
-        <img src="${thumb}" alt="${s.title} ${i + 1}" loading="${i < 6 ? 'eager' : 'lazy'}">
-        <span class="photo-index">${String(i + 1).padStart(3,'0')}</span>
+    const selected = chapter.photos.slice(0, Math.min(8, chapter.photos.length));
+    const sequence = document.getElementById("photo-sequence");
+    selected.forEach((photo, index) => {
+      const figure = document.createElement("figure");
+      figure.className = "photo-frame";
+      figure.innerHTML = `
+        <img src="${imageUrl(chapter, photo, index < 2 ? 1500 : 1200)}" alt="${chapter.title.toLowerCase()} frame ${index + 1}" loading="${index < 2 ? "eager" : "lazy"}">
+        <figcaption>${fallbackCaptions[index] || `${chapter.title.toLowerCase()}, frame ${String(index + 1).padStart(3, "0")}.`}</figcaption>
       `;
-      item.addEventListener('click', () => openLightbox(fullUrls, i, s.title));
-      grid.appendChild(item);
+      sequence.appendChild(figure);
+    });
+
+    const contact = document.getElementById("contact-grid");
+    chapter.photos.slice(0, 36).forEach((photo, index) => {
+      const figure = document.createElement("figure");
+      figure.className = "contact-item";
+      figure.innerHTML = `
+        <img src="${imageUrl(chapter, photo, 520, "c_fill,ar_1:1")}" alt="contact frame ${index + 1}" loading="lazy">
+        <figcaption>${String(index + 1).padStart(3, "0")}</figcaption>
+      `;
+      contact.appendChild(figure);
     });
   }
 </script>
-<script src="main.js"></script>
-<script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js');</script>
 <script>
-  // Lightbox for series page (inline, no archive.html dependency)
-  let lbPhotos = [], lbIdx = 0, lbTouchX = 0;
-  const lb = document.getElementById('lightbox');
-  const lbImg = lb.querySelector('.lightbox-img');
-  const lbMeta = lb.querySelector('.lightbox-meta');
-  const lbTitleEl = document.getElementById('lb-title');
-
-  function openLightbox(photos, idx, title) {
-    lbPhotos = photos; lbIdx = idx;
-    lbTitleEl.textContent = title;
-    showLbPhoto();
-    lb.classList.add('open');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function showLbPhoto() {
-    lbImg.src = lbPhotos[lbIdx];
-    lbMeta.textContent = `${String(lbIdx + 1).padStart(3,'0')} / ${String(lbPhotos.length).padStart(3,'0')}`;
-  }
-
-  function lbPrev() { lbIdx = (lbIdx - 1 + lbPhotos.length) % lbPhotos.length; showLbPhoto(); }
-  function lbNext() { lbIdx = (lbIdx + 1) % lbPhotos.length; showLbPhoto(); }
-  function closeLb() { lb.classList.remove('open'); document.body.style.overflow = ''; }
-
-  lb.querySelector('.lightbox-close').addEventListener('click', closeLb);
-  lb.querySelector('.lightbox-prev').addEventListener('click', lbPrev);
-  lb.querySelector('.lightbox-next').addEventListener('click', lbNext);
-  lb.addEventListener('click', e => { if (e.target === lb) closeLb(); });
-
-  document.addEventListener('keydown', e => {
-    if (!lb.classList.contains('open')) return;
-    if (e.key === 'Escape') closeLb();
-    if (e.key === 'ArrowLeft') lbPrev();
-    if (e.key === 'ArrowRight') lbNext();
-  });
-  lb.addEventListener('touchstart', e => { lbTouchX = e.touches[0].clientX; }, { passive: true });
-  lb.addEventListener('touchend', e => {
-    const dx = e.changedTouches[0].clientX - lbTouchX;
-    if (Math.abs(dx) > 50) dx < 0 ? lbNext() : lbPrev();
-  });
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
 </script>
 </body>
 </html>

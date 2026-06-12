@@ -1,4 +1,4 @@
-const CACHE = 'tcof-v1';
+const CACHE = 'tcof-identity-v2';
 const STATIC = [
   '/',
   '/index.html',
@@ -24,13 +24,22 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Network-first for Cloudinary images, cache-first for everything else
-  if (e.request.url.includes('cloudinary.com') || e.request.url.includes('fonts.googleapis')) {
+  if (e.request.mode === 'navigate') {
     e.respondWith(
-      fetch(e.request).catch(() => caches.match(e.request))
+      fetch(e.request).then(res => {
+        if (res.ok) caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+        return res;
+      }).catch(() => caches.match(e.request))
     );
     return;
   }
+
+  // Network-first for remote images and fonts, cache-first for static local files.
+  if (e.request.url.includes('cloudinary.com') || e.request.url.includes('fonts.googleapis')) {
+    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+    return;
+  }
+
   e.respondWith(
     caches.match(e.request).then(cached => {
       const network = fetch(e.request).then(res => {

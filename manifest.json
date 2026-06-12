@@ -1,11 +1,11 @@
 {
   "name": "the chronicles of a film",
   "short_name": "tcof",
-  "description": "a photographic chronicle by felipe martins",
+  "description": "a personal archive of analog and digital photographs",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0e0e0e",
-  "theme_color": "#0e0e0e",
+  "background_color": "#1B1A18",
+  "theme_color": "#1B1A18",
   "orientation": "portrait-primary",
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
