@@ -311,5 +311,16 @@ const series = [
       "1000125795.jpg",
       "1000125797.jpg",
     ]
+  },
+  {
+    slug: "sharing-the-city",
+    type: "chapter",
+    title: "sharing the city",
+    meta: "digital · 35mm",
+    selectedPhotos: ["STREETCANDY ATM400-0035.jpg"],
+    folder: "chronicles/haarlem",
+    photos: [
+      "STREETCANDY ATM400-0035.jpg",
+    ]
   }
 ];
