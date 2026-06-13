@@ -30,6 +30,7 @@ type PublishPayload = {
   selectedPhotos?: string[];
   contactSheetPhotos?: string[];
   captions?: string[];
+  folder?: string;
   isNew: boolean;
   replacePhotos?: boolean;
   photos: string[];
@@ -825,6 +826,7 @@ async function handlePublish(req: Request) {
   const selectedPhotos = Array.isArray(payload.selectedPhotos) ? payload.selectedPhotos.filter(Boolean) : [];
   const contactSheetPhotos = Array.isArray(payload.contactSheetPhotos) ? payload.contactSheetPhotos.filter(Boolean) : [];
   const captions = Array.isArray(payload.captions) ? payload.captions.filter(Boolean) : [];
+  const folder = String(payload.folder || "").trim();
   const photos = [...new Set((payload.photos || []).filter(Boolean))];
   const hero = payload.hero && photos.includes(payload.hero) ? payload.hero : photos[0];
   const contentFields = {
@@ -850,7 +852,7 @@ async function handlePublish(req: Request) {
       title,
       meta,
       ...contentFields,
-      folder: `chronicles/${slug}`,
+      folder: folder || `chronicles/${slug}`,
       photos: hero ? [hero, ...photos.filter((p) => p !== hero)] : photos,
     });
   } else {

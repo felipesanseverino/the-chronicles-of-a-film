@@ -74,6 +74,11 @@
       </label>
 
       <label>
+        Source folder
+        <input id="sourceFolder" type="text" placeholder="chronicles/south-korea" autocapitalize="none">
+      </label>
+
+      <label>
         Intro
         <textarea id="description" rows="5" placeholder="optional"></textarea>
       </label>
@@ -126,6 +131,29 @@
         </label>
       </div>
       <div class="photo-grid" id="photoGrid"></div>
+    </section>
+
+    <section class="panel">
+      <div class="photo-head">
+        <div>
+          <p class="kicker">archive library</p>
+          <p id="archiveLibraryCount">select archive photos for this item</p>
+        </div>
+      </div>
+      <label>
+        Source archive
+        <select id="archiveSource"></select>
+      </label>
+      <label>
+        Search
+        <input id="archiveSearch" type="search" placeholder="filename" autocomplete="off">
+      </label>
+      <div class="queue-actions">
+        <button id="useAsChapterPhotosBtn" class="primary-action" type="button">use as photos</button>
+        <button id="addSelectedFramesBtn" type="button">selected frames</button>
+        <button id="addContactSheetBtn" type="button">contact sheet</button>
+      </div>
+      <div class="photo-grid studio-browser" id="archiveBrowser"></div>
     </section>
 
     <section class="publish-bar">

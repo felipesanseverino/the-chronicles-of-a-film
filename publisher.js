@@ -10,6 +10,8 @@ const state = {
   settingsOpen: false,
   workspace: "site",
   cloudSelections: new Set(),
+  archiveSelections: new Set(),
+  chapterSourceFolder: "",
   queue: [],
   queueBackendReady: false,
   autoQueue: {
@@ -38,6 +40,7 @@ const els = {
   title: document.getElementById("title"),
   slug: document.getElementById("slug"),
   meta: document.getElementById("meta"),
+  sourceFolder: document.getElementById("sourceFolder"),
   description: document.getElementById("description"),
   essayNote: document.getElementById("essayNote"),
   closingText: document.getElementById("closingText"),
@@ -48,6 +51,13 @@ const els = {
 
   photoGrid: document.getElementById("photoGrid"),
   photoCount: document.getElementById("photoCount"),
+  archiveSource: document.getElementById("archiveSource"),
+  archiveSearch: document.getElementById("archiveSearch"),
+  archiveLibraryCount: document.getElementById("archiveLibraryCount"),
+  archiveBrowser: document.getElementById("archiveBrowser"),
+  useAsChapterPhotosBtn: document.getElementById("useAsChapterPhotosBtn"),
+  addSelectedFramesBtn: document.getElementById("addSelectedFramesBtn"),
+  addContactSheetBtn: document.getElementById("addContactSheetBtn"),
   currentPhotosBlock: document.getElementById("currentPhotosBlock"),
   currentPhotoGrid: document.getElementById("currentPhotoGrid"),
   currentPhotoCount: document.getElementById("currentPhotoCount"),
@@ -104,6 +114,18 @@ function listFromTextarea(value) {
 
 function listToTextarea(value) {
   return Array.isArray(value) ? value.join("\n") : "";
+}
+
+function textareaList(el) {
+  return listFromTextarea(el.value || "");
+}
+
+function setTextareaList(el, values) {
+  el.value = [...new Set(values.filter(Boolean))].join("\n");
+}
+
+function appendTextareaList(el, values) {
+  setTextareaList(el, [...textareaList(el), ...values]);
 }
 
 function loadStudioState() {
@@ -265,6 +287,7 @@ async function loadSeries() {
     .map((s) => `<option value="${s.slug}">${s.title}</option>`)
     .join("");
   renderCloudFolders();
+  renderArchiveFolders();
 }
 
 function setWorkspace(workspace) {
@@ -285,6 +308,102 @@ function renderCloudFolders() {
   els.cloudFolder.innerHTML = state.series.length
     ? state.series.map((s) => `<option value="${s.slug}">${s.title}</option>`).join("")
     : `<option value="">No website folders yet</option>`;
+}
+
+function archiveItems() {
+  return state.series.filter((s) => (s.type || "archive") !== "chapter" && Array.isArray(s.photos) && s.photos.length);
+}
+
+function renderArchiveFolders() {
+  if (!els.archiveSource) return;
+  const archives = archiveItems();
+  els.archiveSource.innerHTML = archives.length
+    ? archives.map((s) => `<option value="${s.slug}">${s.title}</option>`).join("")
+    : `<option value="">No archive photos yet</option>`;
+  renderArchiveBrowser();
+}
+
+function selectedArchiveSeries() {
+  return archiveItems().find((s) => s.slug === els.archiveSource.value) || archiveItems()[0];
+}
+
+function visibleArchivePhotos() {
+  const s = selectedArchiveSeries();
+  if (!s) return [];
+  const query = els.archiveSearch.value.trim().toLowerCase();
+  return (s.photos || [])
+    .map((filename) => ({ series: s, filename }))
+    .filter(({ filename }) => !query || filename.toLowerCase().includes(query));
+}
+
+function selectedArchivePhotoNames() {
+  const s = selectedArchiveSeries();
+  if (!s) return [];
+  return (s.photos || []).filter((filename) => state.archiveSelections.has(sourceKey(s.folder, filename)));
+}
+
+function useArchiveFolderForCurrentItem() {
+  const s = selectedArchiveSeries();
+  if (!s) return;
+  state.chapterSourceFolder = s.folder;
+  els.sourceFolder.value = s.folder;
+}
+
+function renderArchiveBrowser() {
+  if (!els.archiveBrowser) return;
+  const photos = visibleArchivePhotos();
+  const s = selectedArchiveSeries();
+  const selected = s ? selectedArchivePhotoNames().length : 0;
+  els.archiveLibraryCount.textContent = photos.length
+    ? `${photos.length} archive photo${photos.length === 1 ? "" : "s"}${selected ? ` - ${selected} selected` : ""}`
+    : "no matching archive photos";
+  els.archiveBrowser.innerHTML = "";
+
+  photos.forEach(({ series: archive, filename }) => {
+    const key = sourceKey(archive.folder, filename);
+    const card = document.createElement("button");
+    card.type = "button";
+    card.className = [
+      "photo-card",
+      state.archiveSelections.has(key) ? "selected" : "",
+    ].filter(Boolean).join(" ");
+    card.title = `${filename} - ${archive.title}`;
+
+    const img = document.createElement("img");
+    img.src = cloudUrl(archive.folder, filename);
+    img.alt = filename;
+
+    card.append(img);
+    card.addEventListener("click", () => {
+      if (state.archiveSelections.has(key)) state.archiveSelections.delete(key);
+      else state.archiveSelections.add(key);
+      renderArchiveBrowser();
+    });
+    els.archiveBrowser.append(card);
+  });
+}
+
+function applyArchiveSelection(target) {
+  const selected = selectedArchivePhotoNames();
+  if (!selected.length) {
+    setStatus("select archive photos first", 0);
+    return;
+  }
+  useArchiveFolderForCurrentItem();
+  if (target === "photos") {
+    setTextareaList(els.selectedPhotos, selected);
+    setStatus("archive photos set for this chapter", 100);
+    return;
+  }
+  if (target === "selected") {
+    appendTextareaList(els.selectedPhotos, selected);
+    setStatus("selected frames updated", 100);
+    return;
+  }
+  if (target === "contact") {
+    appendTextareaList(els.contactSheetPhotos, selected);
+    setStatus("contact sheet updated", 100);
+  }
 }
 
 function selectedCloudSeries() {
@@ -587,6 +706,8 @@ function fillFromSeries() {
   els.contentType.value = s.type === "chapter" ? "chapter" : "archive";
   els.slug.value = s.slug || "";
   els.meta.value = s.meta || "";
+  els.sourceFolder.value = s.folder || "";
+  state.chapterSourceFolder = s.folder || "";
   els.description.value = s.description || "";
   els.essayNote.value = s.essayNote || "";
   els.closingText.value = s.closingText || "";
@@ -612,7 +733,9 @@ function setMode(mode) {
     state.removedPhotos = new Set();
     state.existingHero = "";
     state.coverSource = "new";
+    state.chapterSourceFolder = "";
     els.contentType.value = "archive";
+    els.sourceFolder.value = "";
     els.essayNote.value = "";
     els.closingText.value = "";
     els.selectedPhotos.value = "";
@@ -689,7 +812,21 @@ function renderExistingPhotos() {
       renderExistingPhotos();
     });
 
-    actions.append(coverBtn, toggleBtn);
+    const listBtn = document.createElement("button");
+    listBtn.type = "button";
+    const listTarget = s.type === "chapter" ? els.selectedPhotos : els.contactSheetPhotos;
+    const listLabel = s.type === "chapter" ? "seq" : "sheet";
+    const isListed = textareaList(listTarget).includes(photo);
+    listBtn.textContent = isListed ? listLabel : `${listLabel}+`;
+    listBtn.hidden = removed;
+    listBtn.addEventListener("click", () => {
+      const current = textareaList(listTarget);
+      if (current.includes(photo)) setTextareaList(listTarget, current.filter((item) => item !== photo));
+      else setTextareaList(listTarget, [...current, photo]);
+      renderExistingPhotos();
+    });
+
+    actions.append(coverBtn, listBtn, toggleBtn);
     card.append(img, actions);
     els.currentPhotoGrid.append(card);
   });
@@ -843,6 +980,7 @@ async function publish() {
   const type = els.contentType.value === "chapter" ? "chapter" : "archive";
   const slug = slugify(els.slug.value.trim() || title);
   const meta = els.meta.value.trim();
+  const sourceFolder = els.sourceFolder.value.trim();
   const description = els.description.value.trim();
   const essayNote = els.essayNote.value.trim();
   const closingText = els.closingText.value.trim();
@@ -852,7 +990,10 @@ async function publish() {
 
   if (!title || !slug || !meta) throw new Error("Fill title, slug, and meta.");
   const keptExisting = state.mode === "update" ? keptExistingPhotos() : [];
-  if (state.mode === "new" && !state.files.length) throw new Error("Choose at least one photo.");
+  const reusablePhotos = sourceFolder && !state.files.length ? selectedPhotos : [];
+  if (state.mode === "new" && !state.files.length && !reusablePhotos.length) {
+    throw new Error("Choose photos, or select archive photos and use them as photos.");
+  }
   if (state.mode === "update" && !keptExisting.length && !state.files.length) {
     throw new Error("Keep or add at least one photo.");
   }
@@ -867,7 +1008,7 @@ async function publish() {
     uploaded.push(await uploadOne(file, slug));
   }
 
-  const photos = state.mode === "update" ? [...keptExisting, ...uploaded] : uploaded;
+  const photos = state.mode === "update" ? [...keptExisting, ...uploaded] : (uploaded.length ? uploaded : reusablePhotos);
   const hero = state.coverSource === "existing" && keptExisting.includes(state.existingHero)
     ? state.existingHero
     : (uploaded[state.heroIndex] || photos[0]);
@@ -883,6 +1024,7 @@ async function publish() {
     selectedPhotos,
     contactSheetPhotos,
     captions,
+    ...(sourceFolder && !uploaded.length ? { folder: sourceFolder } : {}),
     isNew: state.mode === "new",
     replacePhotos: state.mode === "update",
     photos,
@@ -905,6 +1047,14 @@ els.saveSettings.addEventListener("click", saveSettings);
 els.newMode.addEventListener("click", () => setMode("new"));
 els.updateMode.addEventListener("click", () => setMode("update"));
 els.existingSeries.addEventListener("change", fillFromSeries);
+els.archiveSource.addEventListener("change", () => {
+  state.archiveSelections.clear();
+  renderArchiveBrowser();
+});
+els.archiveSearch.addEventListener("input", renderArchiveBrowser);
+els.useAsChapterPhotosBtn.addEventListener("click", () => applyArchiveSelection("photos"));
+els.addSelectedFramesBtn.addEventListener("click", () => applyArchiveSelection("selected"));
+els.addContactSheetBtn.addEventListener("click", () => applyArchiveSelection("contact"));
 els.cloudFolder.addEventListener("change", () => {
   state.cloudSelections.clear();
   renderCloudBrowser();
