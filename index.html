@@ -322,64 +322,6 @@
     transform: translateY(-50%) translateX(0);
   }
 
-  .essay {
-    padding: 14vh max(22px, 8vw);
-  }
-
-  .essay-inner {
-    max-width: 1060px;
-    margin: 0 auto;
-  }
-
-  .essay-title {
-    max-width: 760px;
-    margin: 18px 0 30px;
-    font-family: var(--display);
-    font-size: clamp(42px, 7vw, 86px);
-    font-style: italic;
-    font-weight: 300;
-    line-height: 0.96;
-  }
-
-  .essay-copy {
-    max-width: 64ch;
-    margin: 0 0 100px;
-    color: rgba(242, 237, 224, 0.78);
-    font-size: clamp(18px, 2vw, 22px);
-  }
-
-  .essay-sequence {
-    display: grid;
-    gap: 110px;
-  }
-
-  .essay-figure {
-    margin: 0;
-  }
-
-  .essay-figure:nth-child(2) {
-    width: 62%;
-    margin-left: auto;
-  }
-
-  .essay-figure:nth-child(3) {
-    width: 72%;
-  }
-
-  .essay-figure img {
-    width: 100%;
-    display: block;
-    object-fit: cover;
-    background: #11100f;
-  }
-
-  .essay-figure figcaption {
-    margin-top: 13px;
-    color: var(--grey);
-    font-style: italic;
-    font-size: 15px;
-  }
-
   .about {
     padding: 15vh max(22px, 8vw);
     background: var(--beige);
@@ -415,6 +357,11 @@
     line-height: 1.62;
   }
 
+  .about-accent {
+    color: var(--ochre);
+    font-style: italic;
+  }
+
   .about-copy + .colophon {
     margin-top: 38px;
     color: rgba(58, 46, 37, 0.62);
@@ -423,7 +370,8 @@
   .site-footer {
     display: flex;
     justify-content: space-between;
-    gap: 28px;
+    flex-wrap: wrap;
+    gap: 12px 24px;
     padding: 38px max(22px, 8vw);
     border-top: 1px solid rgba(139, 133, 122, 0.24);
     color: var(--grey);
@@ -462,7 +410,6 @@
     .intro,
     .chapters,
     .archive,
-    .essay,
     .about {
       padding-top: 86px;
       padding-bottom: 86px;
@@ -495,16 +442,6 @@
     }
 
     .archive-thumb { display: none; }
-
-    .essay-sequence {
-      gap: 72px;
-    }
-
-    .essay-figure,
-    .essay-figure:nth-child(2),
-    .essay-figure:nth-child(3) {
-      width: 100%;
-    }
 
     .about-inner {
       grid-template-columns: 1fr;
@@ -544,19 +481,20 @@
 
     <section class="intro" aria-label="identity statement">
       <div class="intro-inner">
-        <div class="chapter-kicker">chapter 00 — the site as a book</div>
+        <div class="chapter-kicker">chapter 00</div>
         <h1>places kept as archives. ideas kept as chapters.</h1>
         <p>
-          the chronicles of a film is the personal photographic journal of felipe martins.
-          archives are built from places and contact sheets. chapters gather photographs
-          by what they express: a mood, a theme, an observation, a thing noticed twice.
+          the chronicles of a film is my personal photographic journal. an ongoing archive
+          of travel, places, texture, light, and life.
+          <br><br>
+          shot on film and digital.
         </p>
       </div>
     </section>
 
-    <section class="chapters" id="chapters" aria-label="recent chapters">
+    <section class="chapters" id="chapters" aria-label="chapters">
       <div class="section-heading">
-        <h2>recent chapters</h2>
+        <h2>chapters</h2>
         <span class="chapter-kicker">ideas, moods, observations</span>
       </div>
       <div class="chapter-list" id="chapter-list"></div>
@@ -565,34 +503,8 @@
     <section class="archive" id="archive" aria-label="archive index">
       <div class="section-heading">
         <h2>archive</h2>
-        <span class="chapter-kicker">places and contact sheets</span>
       </div>
       <div class="archive-list" id="archive-list"></div>
-    </section>
-
-    <section class="essay" aria-label="sample photo essay">
-      <div class="essay-inner">
-        <div class="photo-meta">photo essay — single column, slow scroll</div>
-        <h2 class="essay-title">the kind of light that only shows up when you stop looking.</h2>
-        <p class="essay-copy">
-          three days, one roll and a half. these are the frames that survived:
-          mostly streets, windows, and the hour when the day starts letting go.
-        </p>
-        <div class="essay-sequence">
-          <figure class="essay-figure">
-            <img data-photo="4" alt="a frame from the archive">
-            <figcaption>utrecht, early. the street still belonged to the light.</figcaption>
-          </figure>
-          <figure class="essay-figure">
-            <img data-photo="5" alt="a quiet frame from the archive">
-            <figcaption>window, sunday. everything stayed still long enough.</figcaption>
-          </figure>
-          <figure class="essay-figure">
-            <img data-photo="6" alt="a final quiet frame from the archive">
-            <figcaption>somewhere after rain. the shadows kept the better notes.</figcaption>
-          </figure>
-        </div>
-      </div>
     </section>
 
     <section class="about" id="about" aria-label="about">
@@ -604,18 +516,24 @@
         </div>
         <div>
           <p class="about-copy">
-            i'm felipe. i photograph the places i pass through and the rooms i stay in.
-            the archive keeps those places together. the chapters rearrange frames by
-            feeling, attention, and the small patterns that start to repeat.
+            i photograph the places i pass through and the moments i live. on film when i can,
+            on digital when i can't wait.
+            <br><br>
+            this site is the archive: rolls, chapters, and the frames in between. nothing here
+            is heavily edited. sometimes i crop, but the colors or
+            <span class="about-accent">the lack of them</span> are made in camera.
+            no after-shot adjustments. just the record, kept slowly.
           </p>
-          <div class="colophon">based in the netherlands · analog & digital · contact by plain email</div>
+          <div class="colophon">based in the netherlands · analog & digital</div>
         </div>
       </div>
     </section>
   </main>
 
   <footer class="site-footer">
-    <div class="footer-meta">the chronicles of a film · felipe martins</div>
+    <div class="footer-meta">based in the netherlands · analog & digital</div>
+    <div class="footer-meta"><a href="mailto:hello@thechroniclesofafilm">hello@thechroniclesofafilm</a></div>
+    <div class="footer-meta"><a href="https://www.instagram.com/thechroniclesofafilm" rel="me">@thechroniclesofafilm</a></div>
     <div class="footer-meta"><a href="/archive.html">archive</a></div>
   </footer>
 

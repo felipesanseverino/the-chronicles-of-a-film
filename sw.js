@@ -1,4 +1,4 @@
-const CACHE = 'tcof-identity-v2';
+const CACHE = 'tcof-identity-v3';
 const STATIC = [
   '/',
   '/index.html',

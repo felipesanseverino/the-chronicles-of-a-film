@@ -137,25 +137,6 @@
     line-height: 1.58;
   }
 
-  .paper-note {
-    padding: 13vh max(22px, 8vw);
-    background: var(--beige);
-    color: var(--espresso);
-  }
-
-  .paper-note-inner {
-    max-width: 850px;
-  }
-
-  .paper-note p {
-    margin: 18px 0 0;
-    font-size: clamp(24px, 4vw, 48px);
-    font-family: var(--display);
-    font-style: italic;
-    font-weight: 300;
-    line-height: 1.1;
-  }
-
   .sequence {
     padding: 14vh max(22px, 8vw);
   }
@@ -205,13 +186,6 @@
     filter: contrast(1.02) saturate(0.94);
   }
 
-  .photo-frame figcaption {
-    margin-top: 13px;
-    color: var(--grey);
-    font-size: 15px;
-    font-style: italic;
-  }
-
   .contact-sheet {
     padding: 13vh max(22px, 8vw);
     background: #211f1c;
@@ -257,32 +231,6 @@
     filter: contrast(1.03) saturate(0.86);
   }
 
-  .contact-item figcaption {
-    padding: 7px 7px 9px;
-    font-family: var(--mono);
-    font-size: 10px;
-    color: var(--grey);
-  }
-
-  .chapter-end {
-    padding: 12vh max(22px, 8vw);
-  }
-
-  .chapter-end-inner {
-    max-width: 920px;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.46fr);
-    gap: min(7vw, 88px);
-    align-items: start;
-  }
-
-  .chapter-end p {
-    margin: 0;
-    font-size: clamp(20px, 2.2vw, 28px);
-    color: rgba(242, 237, 224, 0.76);
-  }
-
   .site-footer {
     display: flex;
     justify-content: space-between;
@@ -319,10 +267,8 @@
       aspect-ratio: 4 / 5;
     }
 
-    .paper-note,
     .sequence,
-    .contact-sheet,
-    .chapter-end {
+    .contact-sheet {
       padding-top: 86px;
       padding-bottom: 86px;
     }
@@ -348,11 +294,6 @@
     .contact-grid {
       grid-template-columns: repeat(2, 1fr);
       gap: 7px;
-    }
-
-    .chapter-end-inner {
-      grid-template-columns: 1fr;
-      gap: 32px;
     }
 
     .site-footer { display: block; }
@@ -382,13 +323,6 @@
       </div>
     </section>
 
-    <section class="paper-note" aria-label="chapter note">
-      <div class="paper-note-inner">
-        <div class="kicker">essay note</div>
-        <p id="essay-note">a few frames, a few lines, and the room to look slowly.</p>
-      </div>
-    </section>
-
     <section class="sequence" aria-label="selected sequence">
       <div class="sequence-inner">
         <div class="sequence-head">
@@ -403,20 +337,11 @@
       <div class="contact-sheet-inner">
         <div class="contact-head">
           <h2>contact sheet</h2>
-          <span class="photo-meta">process view</span>
         </div>
         <div class="contact-grid" id="contact-grid"></div>
       </div>
     </section>
 
-    <section class="chapter-end" aria-label="chapter colophon">
-      <div class="chapter-end-inner">
-        <p>
-          one opening image, a short note, a slow sequence, and a small contact sheet at the end.
-        </p>
-        <div class="colophon" id="colophon">loading frames</div>
-      </div>
-    </section>
   </main>
 
   <footer class="site-footer">
@@ -426,15 +351,6 @@
 
 <script src="/config.js?v=20260613-archive-chapters"></script>
 <script>
-  const fallbackCaptions = [
-    "a frame kept for the way the light stayed.",
-    "the kind of pause that turns into a chapter.",
-    "a quiet detail, seen slowly.",
-    "surface, shadow, door, frame.",
-    "nobody was in a hurry, including the light.",
-    "the sequence finds its own weather."
-  ];
-
   function imageUrl(item, photo, width = 1400, crop = "") {
     const transform = crop ? `f_auto,q_auto,w_${width},${crop}` : `f_auto,q_auto,w_${width}`;
     return `${CLOUDINARY_BASE}/${transform}/${item.folder}/${encodeURIComponent(photo)}`;
@@ -461,30 +377,22 @@
     document.getElementById("chapter-title").textContent = chapter.title.toLowerCase();
     document.getElementById("chapter-meta").textContent = `${contentType} ${String(contentType === "chapter" ? typeIndex + 1 : 47 + typeIndex).padStart(contentType === "chapter" ? 2 : 3, "0")} — ${chapter.meta.toLowerCase()}`;
     document.getElementById("selected-count").textContent = `${chapter.photos.length} frames`;
-    document.getElementById("colophon").textContent = `${chapter.title.toLowerCase()} · ${chapter.meta.toLowerCase()} · ${chapter.photos.length} frames kept`;
     document.getElementById("footer-title").textContent = `${chapter.title.toLowerCase()} · the chronicles of a film`;
     if (chapter.description) {
       document.getElementById("chapter-description").textContent = chapter.description
         .replace(/\s*more info about the project here:.*/i, "")
         .trim();
     }
-    document.getElementById("essay-note").textContent = chapter.essayNote ||
-      (chapter.slug === "tokyo-toilet"
-        ? "seventeen public rooms, treated less like landmarks and more like quiet interruptions in the day."
-        : "a few frames from the chapter, sequenced slowly and left with enough room to breathe.");
-
     const heroPhoto = chapter.photos[1] || chapter.photos[0];
     document.getElementById("hero-image").src = imageUrl(chapter, heroPhoto, 1800);
 
     const selected = validPhotoList(chapter, chapter.selectedPhotos, chapter.photos.slice(0, Math.min(8, chapter.photos.length)));
-    const captions = Array.isArray(chapter.captions) ? chapter.captions : [];
     const sequence = document.getElementById("photo-sequence");
     selected.forEach((photo, index) => {
       const figure = document.createElement("figure");
       figure.className = "photo-frame";
       figure.innerHTML = `
         <img src="${imageUrl(chapter, photo, index < 2 ? 1500 : 1200)}" alt="${chapter.title.toLowerCase()} frame ${index + 1}" loading="${index < 2 ? "eager" : "lazy"}">
-        <figcaption>${captions[index] || fallbackCaptions[index] || `${chapter.title.toLowerCase()}, frame ${String(index + 1).padStart(3, "0")}.`}</figcaption>
       `;
       sequence.appendChild(figure);
     });
@@ -496,12 +404,9 @@
       figure.className = "contact-item";
       figure.innerHTML = `
         <img src="${imageUrl(chapter, photo, 520, "c_fill,ar_1:1")}" alt="contact frame ${index + 1}" loading="lazy">
-        <figcaption>${String(index + 1).padStart(3, "0")}</figcaption>
       `;
       contact.appendChild(figure);
     });
-    document.querySelector(".chapter-end p").textContent = chapter.closingText ||
-      "one opening image, a short note, a slow sequence, and a small contact sheet at the end.";
   }
 </script>
 <script>
