@@ -450,7 +450,7 @@
     document.getElementById("hero-image").src = imageUrl(chapter, heroPhoto, 1800);
 
     if (contentType === "chapter") {
-      const selected = validPhotoList(chapter, chapter.selectedPhotos, chapter.photos.slice(0, Math.min(8, chapter.photos.length)));
+      const selected = validPhotoList(chapter, chapter.selectedPhotos, chapter.photos);
       const sequence = document.getElementById("photo-sequence");
       selected.forEach((photo, index) => {
         const figure = document.createElement("figure");
