@@ -148,6 +148,7 @@ function writeConfig(series) {
   series.forEach((s, i) => {
     lines.push('  {');
     lines.push(`    slug: ${JSON.stringify(s.slug)},`);
+    if (s.type && s.type !== 'archive') lines.push(`    type: ${JSON.stringify(s.type)},`);
     lines.push(`    title: ${JSON.stringify(s.title)},`);
     lines.push(`    meta: ${JSON.stringify(s.meta)},`);
     if (s.description) lines.push(`    description: ${JSON.stringify(s.description)},`);
@@ -206,8 +207,8 @@ async function main() {
   // ── action ──
   divider('what would you like to do?');
   console.log('');
-  menuItem(1, 'add a new series');
-  menuItem(2, 'update an existing series', '(add photos / edit intro)');
+  menuItem(1, 'add a new archive or chapter');
+  menuItem(2, 'update an existing item', '(add photos / edit intro)');
   console.log('');
   const action = await ask('choice', '1');
 
@@ -219,7 +220,7 @@ async function main() {
     divider('existing series');
     console.log('');
     series.forEach((s, i) =>
-      menuItem(i + 1, s.title, `${s.photos.length} photos · ${s.meta}`)
+      menuItem(i + 1, s.title, `${s.type === 'chapter' ? 'chapter' : 'archive'} · ${s.photos.length} photos · ${s.meta}`)
     );
     console.log('');
     const pick = parseInt(await ask('number')) - 1;
@@ -227,7 +228,7 @@ async function main() {
 
     // description
     console.log('');
-    divider('series intro');
+    divider('archive / chapter intro');
     console.log('');
     if (targetSeries.description) {
       info(`current: "${targetSeries.description.substring(0, 70)}…"`);
@@ -241,17 +242,22 @@ async function main() {
   } else {
     isNew = true;
     console.log('');
-    divider('new series');
+    divider('new archive / chapter');
     console.log('');
     const title       = await ask('title (e.g. South Korea)');
     const slug        = await ask('slug', slugify(title));
+    const typeChoice  = (await ask('type: archive or chapter', 'archive')).toLowerCase();
+    const type        = typeChoice.startsWith('c') ? 'chapter' : 'archive';
     const meta        = await ask('meta (e.g. Asia · 35mm)');
     console.log('');
-    divider('series intro');
+    divider('archive / chapter intro');
     console.log('');
     const description = await ask('intro text (optional)');
     targetSeries = {
-      slug, title, meta,
+      slug,
+      ...(type === 'chapter' ? { type } : {}),
+      title,
+      meta,
       ...(description ? { description } : {}),
       folder: `chronicles/${slug}`,
       photos: [],

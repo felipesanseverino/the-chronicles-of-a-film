@@ -34,6 +34,7 @@ const els = {
   updateMode: document.getElementById("updateMode"),
   existingWrap: document.getElementById("existingWrap"),
   existingSeries: document.getElementById("existingSeries"),
+  contentType: document.getElementById("contentType"),
   title: document.getElementById("title"),
   slug: document.getElementById("slug"),
   meta: document.getElementById("meta"),
@@ -583,6 +584,7 @@ function fillFromSeries() {
   const s = selectedSeries();
   if (!s) return;
   els.title.value = s.title || "";
+  els.contentType.value = s.type === "chapter" ? "chapter" : "archive";
   els.slug.value = s.slug || "";
   els.meta.value = s.meta || "";
   els.description.value = s.description || "";
@@ -610,6 +612,7 @@ function setMode(mode) {
     state.removedPhotos = new Set();
     state.existingHero = "";
     state.coverSource = "new";
+    els.contentType.value = "archive";
     els.essayNote.value = "";
     els.closingText.value = "";
     els.selectedPhotos.value = "";
@@ -837,6 +840,7 @@ async function queueSelectedPhotos() {
 
 async function publish() {
   const title = els.title.value.trim();
+  const type = els.contentType.value === "chapter" ? "chapter" : "archive";
   const slug = slugify(els.slug.value.trim() || title);
   const meta = els.meta.value.trim();
   const description = els.description.value.trim();
@@ -870,6 +874,7 @@ async function publish() {
   setStatus("updating the site", 92);
   const result = await functionFetch("publish", {
     slug,
+    type,
     title,
     meta,
     description,

@@ -424,7 +424,7 @@
     <div class="footer-meta"><a href="/archive.html">archive</a></div>
   </footer>
 
-<script src="/config.js"></script>
+<script src="/config.js?v=20260613-archive-chapters"></script>
 <script>
   const fallbackCaptions = [
     "a frame kept for the way the light stayed.",
@@ -454,8 +454,12 @@
 
   if (chapter) {
     document.title = `${chapter.title.toLowerCase()} — the chronicles of a film`;
+    const contentType = chapter.type === "chapter" ? "chapter" : "archive";
+    const typeIndex = sourceSeries
+      .filter((item) => (item.type === "chapter" ? "chapter" : "archive") === contentType)
+      .indexOf(chapter);
     document.getElementById("chapter-title").textContent = chapter.title.toLowerCase();
-    document.getElementById("chapter-meta").textContent = `roll ${String(47 + chapterIndex).padStart(3, "0")} — ${chapter.meta.toLowerCase()}`;
+    document.getElementById("chapter-meta").textContent = `${contentType} ${String(contentType === "chapter" ? typeIndex + 1 : 47 + typeIndex).padStart(contentType === "chapter" ? 2 : 3, "0")} — ${chapter.meta.toLowerCase()}`;
     document.getElementById("selected-count").textContent = `${chapter.photos.length} frames`;
     document.getElementById("colophon").textContent = `${chapter.title.toLowerCase()} · ${chapter.meta.toLowerCase()} · ${chapter.photos.length} frames kept`;
     document.getElementById("footer-title").textContent = `${chapter.title.toLowerCase()} · the chronicles of a film`;

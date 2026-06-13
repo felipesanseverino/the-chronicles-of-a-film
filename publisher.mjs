@@ -105,6 +105,7 @@ function writeConfig(series) {
   series.forEach((s, i) => {
     lines.push('  {');
     lines.push(`    slug: ${JSON.stringify(s.slug)},`);
+    if (s.type && s.type !== 'archive') lines.push(`    type: ${JSON.stringify(s.type)},`);
     lines.push(`    title: ${JSON.stringify(s.title)},`);
     lines.push(`    meta: ${JSON.stringify(s.meta)},`);
     if (s.description) lines.push(`    description: ${JSON.stringify(s.description)},`);
@@ -265,11 +266,13 @@ async function route(req, res) {
 
   // Save metadata only (no upload)
   if (m === 'POST' && path === '/api/save') {
-    const { slug, title, meta, description, essayNote, closingText, selectedPhotos, contactSheetPhotos, captions } = await body(req);
+    const { slug, type, title, meta, description, essayNote, closingText, selectedPhotos, contactSheetPhotos, captions } = await body(req);
     const series = readRemoteConfig();
     const idx = series.findIndex(s => s.slug === slug);
     if (idx === -1) { res.writeHead(404); return res.end(JSON.stringify({ error: 'not found' })); }
     if (title) series[idx].title = title;
+    series[idx].type = type === 'chapter' ? 'chapter' : 'archive';
+    if (series[idx].type === 'archive') delete series[idx].type;
     if (meta)  series[idx].meta  = meta;
     series[idx].description = description || '';
     if (!series[idx].description) delete series[idx].description;
@@ -359,7 +362,7 @@ async function route(req, res) {
 }
 
 // ── Publish job ───────────────────────────────────────────────────────────────
-async function runPublish({ jobId, slug, title, meta, description, essayNote, closingText, selectedPhotos, contactSheetPhotos, captions, folder, hero, isNew, files }) {
+async function runPublish({ jobId, slug, type, title, meta, description, essayNote, closingText, selectedPhotos, contactSheetPhotos, captions, folder, hero, isNew, files }) {
   const cloudinary = getCloudinary();
   const send = e => sendSSE(jobId, e);
   const dir  = resolve(folder.replace(/^~/, homedir()));
@@ -418,12 +421,14 @@ async function runPublish({ jobId, slug, title, meta, description, essayNote, cl
     ...(Array.isArray(captions) && captions.length ? { captions: captions.filter(Boolean) } : {}),
   };
   if (isNew) {
-    series.push({ slug, title, meta, ...contentFields, folder: cloudFolder, photos: uploaded });
+    series.push({ slug, ...(type === 'chapter' ? { type: 'chapter' } : {}), title, meta, ...contentFields, folder: cloudFolder, photos: uploaded });
   } else {
     const idx = series.findIndex(s => s.slug === slug);
     const heroId = heroFile.replace(/\.[^.]+$/, '').toUpperCase() + '.jpg';
     const merged = [...new Set([...uploaded, ...series[idx].photos])];
     series[idx].photos = [heroId, ...merged.filter(p => p !== heroId)];
+    series[idx].type = type === 'chapter' ? 'chapter' : 'archive';
+    if (series[idx].type === 'archive') delete series[idx].type;
     series[idx].description = description || '';
     if (!series[idx].description) delete series[idx].description;
     series[idx].essayNote = essayNote || '';
@@ -1280,8 +1285,15 @@ function renderForm(s) {
 
   mc.innerHTML = \`
     <div class="form-section">
-      <span class="section-label">series details</span>
+      <span class="section-label">archive / chapter details</span>
       <div class="form-grid">
+        <div class="field">
+          <label>type</label>
+          <select id="f-type">
+            <option value="archive" \${!s || s.type !== 'chapter' ? 'selected' : ''}>archive / place</option>
+            <option value="chapter" \${s && s.type === 'chapter' ? 'selected' : ''}>chapter / idea</option>
+          </select>
+        </div>
         <div class="field">
           <label>title</label>
           <input id="f-title" type="text" value="\${s ? s.title : ''}" placeholder="Japan" oninput="autoSlug()">
@@ -1531,6 +1543,7 @@ function setHero(f) {
 // ── Upload ────────────────────────────────────────────────────────────────────
 async function startUpload() {
   const title  = document.getElementById('f-title')?.value.trim();
+  const type   = document.getElementById('f-type')?.value === 'chapter' ? 'chapter' : 'archive';
   const slug   = document.getElementById('f-slug')?.value.trim();
   const meta   = document.getElementById('f-meta')?.value.trim();
   const desc   = document.getElementById('f-desc')?.value.trim();
@@ -1628,6 +1641,7 @@ async function startUpload() {
       body: JSON.stringify({
         jobId,
         slug,
+        type,
         title,
         meta,
         description: desc,
@@ -1659,6 +1673,7 @@ async function startUpload() {
 // ── Deploy ────────────────────────────────────────────────────────────────────
 async function deployNow() {
   const slug  = document.getElementById('f-slug')?.value.trim();
+  const type  = document.getElementById('f-type')?.value === 'chapter' ? 'chapter' : 'archive';
   const title = document.getElementById('f-title')?.value.trim();
   const meta  = document.getElementById('f-meta')?.value.trim();
   const desc  = document.getElementById('f-desc')?.value.trim();
@@ -1677,6 +1692,7 @@ async function deployNow() {
       method: 'POST',
       body: JSON.stringify({
         slug,
+        type,
         title,
         meta,
         description: desc,

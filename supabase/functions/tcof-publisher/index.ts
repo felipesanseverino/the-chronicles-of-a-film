@@ -6,6 +6,7 @@ const corsHeaders = {
 
 type Series = {
   slug: string;
+  type?: "archive" | "chapter";
   title: string;
   meta: string;
   description?: string;
@@ -20,6 +21,7 @@ type Series = {
 
 type PublishPayload = {
   slug: string;
+  type?: "archive" | "chapter";
   title: string;
   meta: string;
   description?: string;
@@ -188,6 +190,7 @@ function writeConfig(series: Series[]) {
   series.forEach((s, i) => {
     lines.push("  {");
     lines.push(`    slug: ${JSON.stringify(s.slug)},`);
+    if (s.type && s.type !== "archive") lines.push(`    type: ${JSON.stringify(s.type)},`);
     lines.push(`    title: ${JSON.stringify(s.title)},`);
     lines.push(`    meta: ${JSON.stringify(s.meta)},`);
     if (s.description) lines.push(`    description: ${JSON.stringify(s.description)},`);
@@ -813,6 +816,7 @@ async function handleQueuePublish(req: Request) {
 async function handlePublish(req: Request) {
   const payload = await req.json() as PublishPayload;
   const slug = slugify(payload.slug || payload.title || "");
+  const type = payload.type === "chapter" ? "chapter" : "archive";
   const title = String(payload.title || "").trim();
   const meta = String(payload.meta || "").trim();
   const description = String(payload.description || "").trim();
@@ -842,6 +846,7 @@ async function handlePublish(req: Request) {
   if (payload.isNew || idx === -1) {
     series.push({
       slug,
+      ...(type === "chapter" ? { type } : {}),
       title,
       meta,
       ...contentFields,
@@ -853,12 +858,14 @@ async function handlePublish(req: Request) {
     const merged = payload.replacePhotos ? photos : [...new Set([...photos, ...current.photos])];
     series[idx] = {
       ...current,
+      ...(type === "chapter" ? { type } : {}),
       title,
       meta,
       ...contentFields,
       photos: hero ? [hero, ...merged.filter((p) => p !== hero)] : merged,
     };
     if (!description) delete series[idx].description;
+    if (type === "archive") delete series[idx].type;
     if (!essayNote) delete series[idx].essayNote;
     if (!closingText) delete series[idx].closingText;
     if (!selectedPhotos.length) delete series[idx].selectedPhotos;
@@ -867,7 +874,7 @@ async function handlePublish(req: Request) {
   }
 
   const photoPart = photos.length ? ` - ${photos.length} photos` : "";
-  const message = `${payload.isNew || idx === -1 ? "Add" : "Update"} ${title} series${photoPart}`;
+  const message = `${payload.isNew || idx === -1 ? "Add" : "Update"} ${title} ${type}${photoPart}`;
   const result = await updateGithubConfig(writeConfig(series), sha, message);
 
   return json({

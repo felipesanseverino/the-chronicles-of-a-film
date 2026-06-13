@@ -270,15 +270,15 @@
     <section class="page-head" aria-label="archive introduction">
       <div>
         <div class="kicker">archive index</div>
-        <h1>every roll, numbered and kept.</h1>
+        <h1>places, gathered as contact sheets.</h1>
       </div>
       <p class="intro">
-        some chapters are about places. some are about light. some are about nothing in particular,
-        which is where most of life happens.
+        archives are based on places: cities, trips, rooms, routes, and the contact sheets
+        that keep those photographs close to where they came from.
       </p>
     </section>
 
-    <section aria-label="all chapters">
+    <section aria-label="all archives">
       <div class="archive-heading">
         <h2>card catalog</h2>
         <span class="kicker" id="archive-count"></span>
@@ -292,7 +292,7 @@
     <div class="footer-meta"><a href="/">home</a></div>
   </footer>
 
-<script src="/config.js"></script>
+<script src="/config.js?v=20260613-archive-chapters"></script>
 <script>
   function imageUrl(item, photo, width = 1000, crop = "") {
     const transform = crop ? `f_auto,q_auto,w_${width},${crop}` : `f_auto,q_auto,w_${width}`;
@@ -300,16 +300,17 @@
   }
 
   const sourceSeries = typeof series !== "undefined" && Array.isArray(series) ? series : [];
-  document.getElementById("archive-count").textContent = `${sourceSeries.length} chapters`;
+  const archives = sourceSeries.filter((item) => (item.type || "archive") !== "chapter");
+  document.getElementById("archive-count").textContent = `${archives.length} archives`;
 
   const archiveList = document.getElementById("archive-list");
-  sourceSeries.forEach((item, index) => {
+  archives.forEach((item, index) => {
     const row = document.createElement("a");
     row.className = "archive-row";
     row.href = `/series.html?s=${item.slug}`;
     const photo = item.photos?.[index % item.photos.length] || item.photos?.[0];
     row.innerHTML = `
-      <span class="archive-meta">roll ${String(47 + index).padStart(3, "0")}</span>
+      <span class="archive-meta">place ${String(index + 1).padStart(2, "0")}</span>
       <span class="archive-title">${item.title.toLowerCase()}</span>
       <span class="archive-meta">${(item.meta || "digital").toLowerCase()}</span>
       <span class="archive-arrow">→</span>

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#1B1A18">
-<meta name="description" content="a personal archive of analog and digital photographs — chapters of places, light, and quiet moments.">
+<meta name="description" content="a personal archive of place-based contact sheets and photographic chapters shaped by ideas, themes, moods, and observations.">
 <title>the chronicles of a film</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -545,11 +545,11 @@
     <section class="intro" aria-label="identity statement">
       <div class="intro-inner">
         <div class="chapter-kicker">chapter 00 — the site as a book</div>
-        <h1>places, light, and quiet moments.</h1>
+        <h1>places kept as archives. ideas kept as chapters.</h1>
         <p>
-          the chronicles of a film is the personal photographic journal of felipe martins:
-          an ongoing archive of travel, streets, interiors, and small moments, shot on film
-          and digital, collected like entries in a diary.
+          the chronicles of a film is the personal photographic journal of felipe martins.
+          archives are built from places and contact sheets. chapters gather photographs
+          by what they express: a mood, a theme, an observation, a thing noticed twice.
         </p>
       </div>
     </section>
@@ -557,7 +557,7 @@
     <section class="chapters" id="chapters" aria-label="recent chapters">
       <div class="section-heading">
         <h2>recent chapters</h2>
-        <span class="chapter-kicker">three frames, not a feed</span>
+        <span class="chapter-kicker">ideas, moods, observations</span>
       </div>
       <div class="chapter-list" id="chapter-list"></div>
     </section>
@@ -565,7 +565,7 @@
     <section class="archive" id="archive" aria-label="archive index">
       <div class="section-heading">
         <h2>archive</h2>
-        <span class="chapter-kicker">card catalog</span>
+        <span class="chapter-kicker">places and contact sheets</span>
       </div>
       <div class="archive-list" id="archive-list"></div>
     </section>
@@ -604,10 +604,9 @@
         </div>
         <div>
           <p class="about-copy">
-            i'm felipe. i photograph the places i pass through and the rooms i stay in —
-            on film when i can, on digital when i can't wait. this site is the archive:
-            rolls, chapters, and the frames in between. nothing here was made for a client
-            or an algorithm. it's just the record, kept slowly.
+            i'm felipe. i photograph the places i pass through and the rooms i stay in.
+            the archive keeps those places together. the chapters rearrange frames by
+            feeling, attention, and the small patterns that start to repeat.
           </p>
           <div class="colophon">based in the netherlands · analog & digital · contact by plain email</div>
         </div>
@@ -620,7 +619,7 @@
     <div class="footer-meta"><a href="/archive.html">archive</a></div>
   </footer>
 
-<script src="/config.js"></script>
+<script src="/config.js?v=20260613-archive-chapters"></script>
 <script>
   const localFallbacks = [
     "/01_DSCF0702_south-korea-alley.JPG",
@@ -634,6 +633,18 @@
     return `${cloudinaryBase}/${transform}/${item.folder}/${encodeURIComponent(item.photo)}`;
   }
 
+  function normalizeItem(item, index) {
+    return {
+      slug: item.slug,
+      type: item.type || "archive",
+      title: item.title.toLowerCase(),
+      meta: item.meta ? item.meta.toLowerCase() : "digital",
+      folder: item.folder,
+      photo: item.photos[index % item.photos.length],
+      count: item.photos.length
+    };
+  }
+
   function archiveItems() {
     const sourceSeries = typeof series !== "undefined" && Array.isArray(series) ? series : [];
     if (!sourceSeries.length) {
@@ -644,20 +655,24 @@
     }
 
     return sourceSeries
+      .filter((item) => (item.type || "archive") !== "chapter")
       .filter((item) => item.photos && item.photos.length)
-      .map((item, index) => ({
-        slug: item.slug,
-        title: item.title.toLowerCase(),
-        meta: item.meta ? item.meta.toLowerCase() : "digital",
-        folder: item.folder,
-        photo: item.photos[index % item.photos.length],
-        count: item.photos.length
-      }));
+      .map(normalizeItem);
+  }
+
+  function chapterItems() {
+    const sourceSeries = typeof series !== "undefined" && Array.isArray(series) ? series : [];
+    const chapters = sourceSeries
+      .filter((item) => (item.type || "archive") === "chapter")
+      .filter((item) => item.photos && item.photos.length)
+      .map(normalizeItem);
+    return chapters.length ? chapters : archiveItems().slice(0, 3);
   }
 
   const items = archiveItems();
+  const chapters = chapterItems();
   const photoPool = [
-    items[2], items[0], items[1], items[3], items[4], items[5], items[6]
+    chapters[0], items[2], items[0], items[1], items[3], items[4], items[5], items[6]
   ].filter(Boolean);
 
   document.querySelectorAll("[data-photo]").forEach((image) => {
@@ -666,15 +681,15 @@
   });
 
   const chapterList = document.getElementById("chapter-list");
-  items.slice(0, 3).forEach((item, index) => {
+  chapters.slice(0, 6).forEach((item, index) => {
     const link = document.createElement("a");
     link.className = "chapter";
     link.href = `/series.html?s=${item.slug}`;
     link.innerHTML = `
       <img class="chapter-photo" src="${item.folder ? cloudinaryImage(item, 1100, "c_fill,ar_4:3") : item.photo}" alt="${item.title}">
       <div class="chapter-title"><span>${item.title}</span><span>0${index + 1}</span></div>
-      <div class="photo-meta">roll ${String(47 + index).padStart(3, "0")} — ${item.meta}</div>
-      <p>${index === 0 ? "open with atmosphere, not the best image." : index === 1 ? "a chapter arranged by light, gesture, and echo." : "the photograph gets more space than feels necessary."}</p>
+      <div class="photo-meta">chapter ${String(index + 1).padStart(2, "0")} — ${item.meta}</div>
+      <p>${index === 0 ? "sharing the city, beyond the city, sand and water." : index === 1 ? "a chapter arranged by light, gesture, and echo." : "photographs grouped by what they were noticing."}</p>
     `;
     chapterList.appendChild(link);
   });
@@ -685,7 +700,7 @@
     row.className = "archive-row";
     row.href = `/series.html?s=${item.slug}`;
     row.innerHTML = `
-      <span class="archive-meta">roll ${String(47 + index).padStart(3, "0")}</span>
+      <span class="archive-meta">place ${String(index + 1).padStart(2, "0")}</span>
       <span class="archive-title">${item.title}</span>
       <span class="archive-meta">${item.meta}</span>
       <img class="archive-thumb" src="${item.folder ? cloudinaryImage(item, 620, "c_fill,ar_4:3") : item.photo}" alt="">
