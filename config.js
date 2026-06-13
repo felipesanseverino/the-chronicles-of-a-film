@@ -193,6 +193,24 @@ const series = [
     ]
   },
   {
+    slug: "at-anchor",
+    type: "chapter",
+    title: "at anchor",
+    meta: "digital · 35mm",
+    description: "boats, masts, water, and the quiet weight of things held in place.",
+    folder: "chronicles/sail-amsterdam",
+    photos: [
+      "DSCF1782.jpg",
+      "DSCF1798.jpg",
+      "DSCF1796.jpg",
+      "DSCF1784.jpg",
+      "DSCF1810.jpg",
+      "ROLLEI RPX400 - 120MM0005.jpg",
+      "FOMAPAN ASA 400 - 120MM0001.jpg",
+      "FOMAPAN ASA 400 - 120MM0006.jpg",
+    ]
+  },
+  {
     slug: "slovenia",
     title: "Slovenia",
     meta: "digital",
