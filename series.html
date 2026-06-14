@@ -414,8 +414,9 @@
 <script src="/config.js?v=20260613-archive-chapters"></script>
 <script>
   function imageUrl(item, photo, width = 1400, crop = "") {
+    const folder = item.photoFolders && item.photoFolders[photo] ? item.photoFolders[photo] : item.folder;
     const transform = crop ? `f_auto,q_auto,w_${width},${crop}` : `f_auto,q_auto,w_${width}`;
-    return `${CLOUDINARY_BASE}/${transform}/${item.folder}/${encodeURIComponent(photo)}`;
+    return `${CLOUDINARY_BASE}/${transform}/${folder}/${encodeURIComponent(photo)}`;
   }
 
   function validPhotoList(item, list, fallback) {

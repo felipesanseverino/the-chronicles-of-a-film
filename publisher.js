@@ -12,6 +12,7 @@ const state = {
   cloudSelections: new Set(),
   archiveSelections: new Set(),
   chapterSourceFolder: "",
+  photoFolders: {},
   queue: [],
   queueBackendReady: false,
   autoQueue: {
@@ -126,6 +127,13 @@ function setTextareaList(el, values) {
 
 function appendTextareaList(el, values) {
   setTextareaList(el, [...textareaList(el), ...values]);
+}
+
+function selectedReusablePhotos() {
+  return [...new Set([
+    ...textareaList(els.selectedPhotos),
+    ...textareaList(els.contactSheetPhotos),
+  ])];
 }
 
 function loadStudioState() {
@@ -342,11 +350,25 @@ function selectedArchivePhotoNames() {
   return (s.photos || []).filter((filename) => state.archiveSelections.has(sourceKey(s.folder, filename)));
 }
 
+function selectedArchivePhotoEntries() {
+  const s = selectedArchiveSeries();
+  if (!s) return [];
+  return (s.photos || [])
+    .filter((filename) => state.archiveSelections.has(sourceKey(s.folder, filename)))
+    .map((filename) => ({ filename, folder: s.folder }));
+}
+
 function useArchiveFolderForCurrentItem() {
   const s = selectedArchiveSeries();
   if (!s) return;
   state.chapterSourceFolder = s.folder;
   els.sourceFolder.value = s.folder;
+}
+
+function rememberArchiveSources(entries) {
+  entries.forEach(({ filename, folder }) => {
+    state.photoFolders[filename] = folder;
+  });
 }
 
 function renderArchiveBrowser() {
@@ -385,11 +407,13 @@ function renderArchiveBrowser() {
 
 function applyArchiveSelection(target) {
   const selected = selectedArchivePhotoNames();
-  if (!selected.length) {
+  const entries = selectedArchivePhotoEntries();
+  if (!entries.length) {
     setStatus("select archive photos first", 0);
     return;
   }
   useArchiveFolderForCurrentItem();
+  rememberArchiveSources(entries);
   if (target === "photos") {
     setTextareaList(els.selectedPhotos, selected);
     setStatus("archive photos set for this chapter", 100);
@@ -714,6 +738,7 @@ function fillFromSeries() {
   els.selectedPhotos.value = listToTextarea(s.selectedPhotos);
   els.contactSheetPhotos.value = listToTextarea(s.contactSheetPhotos);
   els.captions.value = listToTextarea(s.captions);
+  state.photoFolders = { ...(s.photoFolders || {}) };
   state.existingPhotos = [...(s.photos || [])];
   state.removedPhotos = new Set();
   state.existingHero = state.existingPhotos[0] || "";
@@ -734,6 +759,7 @@ function setMode(mode) {
     state.existingHero = "";
     state.coverSource = "new";
     state.chapterSourceFolder = "";
+    state.photoFolders = {};
     els.contentType.value = "archive";
     els.sourceFolder.value = "";
     els.essayNote.value = "";
@@ -990,7 +1016,7 @@ async function publish() {
 
   if (!title || !slug || !meta) throw new Error("Fill title, slug, and meta.");
   const keptExisting = state.mode === "update" ? keptExistingPhotos() : [];
-  const reusablePhotos = sourceFolder && !state.files.length ? selectedPhotos : [];
+  const reusablePhotos = !state.files.length ? selectedReusablePhotos() : [];
   if (state.mode === "new" && !state.files.length && !reusablePhotos.length) {
     throw new Error("Choose photos, or select archive photos and use them as photos.");
   }
@@ -1008,7 +1034,7 @@ async function publish() {
     uploaded.push(await uploadOne(file, slug));
   }
 
-  const photos = state.mode === "update" ? [...keptExisting, ...uploaded] : (uploaded.length ? uploaded : reusablePhotos);
+  const photos = state.mode === "update" ? [...keptExisting, ...uploaded, ...reusablePhotos] : (uploaded.length ? uploaded : reusablePhotos);
   const hero = state.coverSource === "existing" && keptExisting.includes(state.existingHero)
     ? state.existingHero
     : (uploaded[state.heroIndex] || photos[0]);
@@ -1024,6 +1050,7 @@ async function publish() {
     selectedPhotos,
     contactSheetPhotos,
     captions,
+    photoFolders: state.photoFolders,
     ...(sourceFolder && !uploaded.length ? { folder: sourceFolder } : {}),
     isNew: state.mode === "new",
     replacePhotos: state.mode === "update",

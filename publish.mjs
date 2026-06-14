@@ -163,6 +163,9 @@ function writeConfig(series) {
     if (Array.isArray(s.captions) && s.captions.length) {
       lines.push(`    captions: ${JSON.stringify(s.captions)},`);
     }
+    if (s.photoFolders && Object.keys(s.photoFolders).length) {
+      lines.push(`    photoFolders: ${JSON.stringify(s.photoFolders)},`);
+    }
     lines.push(`    folder: ${JSON.stringify(s.folder)},`);
     lines.push(`    photos: [`);
     s.photos.forEach(p => lines.push(`      ${JSON.stringify(p)},`));

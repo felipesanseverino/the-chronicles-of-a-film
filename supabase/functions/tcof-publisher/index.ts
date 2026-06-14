@@ -15,6 +15,7 @@ type Series = {
   selectedPhotos?: string[];
   contactSheetPhotos?: string[];
   captions?: string[];
+  photoFolders?: Record<string, string>;
   folder: string;
   photos: string[];
 };
@@ -30,6 +31,7 @@ type PublishPayload = {
   selectedPhotos?: string[];
   contactSheetPhotos?: string[];
   captions?: string[];
+  photoFolders?: Record<string, string>;
   folder?: string;
   isNew: boolean;
   replacePhotos?: boolean;
@@ -205,6 +207,9 @@ function writeConfig(series: Series[]) {
     }
     if (Array.isArray(s.captions) && s.captions.length) {
       lines.push(`    captions: ${JSON.stringify(s.captions)},`);
+    }
+    if (s.photoFolders && Object.keys(s.photoFolders).length) {
+      lines.push(`    photoFolders: ${JSON.stringify(s.photoFolders)},`);
     }
     lines.push(`    folder: ${JSON.stringify(s.folder)},`);
     lines.push("    photos: [");
@@ -826,6 +831,9 @@ async function handlePublish(req: Request) {
   const selectedPhotos = Array.isArray(payload.selectedPhotos) ? payload.selectedPhotos.filter(Boolean) : [];
   const contactSheetPhotos = Array.isArray(payload.contactSheetPhotos) ? payload.contactSheetPhotos.filter(Boolean) : [];
   const captions = Array.isArray(payload.captions) ? payload.captions.filter(Boolean) : [];
+  const photoFolders = payload.photoFolders && typeof payload.photoFolders === "object"
+    ? Object.fromEntries(Object.entries(payload.photoFolders).filter(([photo, folder]) => photo && folder))
+    : {};
   const folder = String(payload.folder || "").trim();
   const photos = [...new Set((payload.photos || []).filter(Boolean))];
   const hero = payload.hero && photos.includes(payload.hero) ? payload.hero : photos[0];
@@ -836,6 +844,7 @@ async function handlePublish(req: Request) {
     ...(selectedPhotos.length ? { selectedPhotos } : {}),
     ...(contactSheetPhotos.length ? { contactSheetPhotos } : {}),
     ...(captions.length ? { captions } : {}),
+    ...(Object.keys(photoFolders).length ? { photoFolders } : {}),
   };
 
   if (!slug || !title || !meta) return json({ error: "Missing title, slug, or meta" }, 400);
@@ -873,6 +882,7 @@ async function handlePublish(req: Request) {
     if (!selectedPhotos.length) delete series[idx].selectedPhotos;
     if (!contactSheetPhotos.length) delete series[idx].contactSheetPhotos;
     if (!captions.length) delete series[idx].captions;
+    if (!Object.keys(photoFolders).length) delete series[idx].photoFolders;
   }
 
   const photoPart = photos.length ? ` - ${photos.length} photos` : "";
