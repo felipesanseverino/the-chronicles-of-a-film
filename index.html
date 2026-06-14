@@ -209,27 +209,15 @@
 
   .chapter-list {
     display: grid;
-    grid-template-columns: repeat(12, 1fr);
-    gap: min(4vw, 54px);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(58px, 8vw, 110px) min(5vw, 64px);
+    max-width: 1320px;
+    margin: 0 auto;
   }
 
   .chapter {
     text-decoration: none;
     color: inherit;
-  }
-
-  .chapter:nth-child(1) {
-    grid-column: 1 / 8;
-  }
-
-  .chapter:nth-child(2) {
-    grid-column: 8 / 13;
-    padding-top: 16vh;
-  }
-
-  .chapter:nth-child(3) {
-    grid-column: 3 / 11;
-    margin-top: 6vh;
   }
 
   .chapter-photo {
@@ -420,16 +408,14 @@
     }
 
     .chapter-list {
-      display: block;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 62px;
     }
 
     .chapter {
       display: block;
-      margin-top: 62px;
-      padding-top: 0 !important;
     }
-
-    .chapter:first-child { margin-top: 0; }
 
     .archive-row {
       grid-template-columns: 78px 1fr;
