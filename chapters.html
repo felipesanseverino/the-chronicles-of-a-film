@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#1B1A18">
-<meta name="description" content="the archive index for the chronicles of a film.">
-<title>archive — the chronicles of a film</title>
+<meta name="description" content="the chapter index for the chronicles of a film.">
+<title>chapters — the chronicles of a film</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Courier+Prime:wght@400&family=Spectral:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
@@ -260,27 +260,27 @@
   <header class="site-header">
     <a class="wordmark" href="/">the <em>chronicles</em> of a film</a>
     <nav class="site-nav" aria-label="primary">
-      <a href="/archive.html" aria-current="page">archive</a>
-      <a href="/chapters.html">chapters</a>
+      <a href="/archive.html">archive</a>
+      <a href="/chapters.html" aria-current="page">chapters</a>
       <a href="/#about">about</a>
     </nav>
   </header>
 
   <main class="page">
-    <section class="page-head" aria-label="archive introduction">
+    <section class="page-head" aria-label="chapter introduction">
       <div>
-        <div class="kicker">archive index</div>
-        <h1>places, gathered as contact sheets.</h1>
+        <div class="kicker">chapter index</div>
+        <h1>ideas, gathered as chapters.</h1>
       </div>
       <p class="intro">
-        archives are based on places: cities, trips, rooms, routes, and the contact sheets
-        that keep those photographs close to where they came from.
+        chapters are based on ideas, themes, moods, and observations. photographs can move
+        between chapters when they share the same feeling.
       </p>
     </section>
 
-    <section aria-label="all archives">
+    <section aria-label="all chapters">
       <div class="archive-heading">
-        <h2>card catalog</h2>
+        <h2>chapter catalog</h2>
         <span class="kicker" id="archive-count"></span>
       </div>
       <div class="archive-list" id="archive-list"></div>
@@ -288,41 +288,40 @@
   </main>
 
   <footer class="site-footer">
-    <div class="footer-meta">the chronicles of a film · archive</div>
+    <div class="footer-meta">the chronicles of a film · chapters</div>
     <div class="footer-meta"><a href="/">home</a></div>
   </footer>
 
 <script src="/config.js?v=20260613-archive-chapters"></script>
 <script>
-  const ARCHIVE_ROLLS = [
-    47, 12, 83, 5, 68, 31, 96, 24, 57, 9, 74, 18, 62, 3, 89, 41, 55, 27, 98, 14,
-    70, 36, 1, 92, 44, 21, 79, 6, 53, 33, 87, 16, 60, 39, 95, 11, 72, 29, 50, 8,
-    66, 23, 91, 45, 4, 77, 34, 58, 19, 84, 2, 64, 38, 97, 25, 51, 13, 69, 30, 88,
-    7, 56, 42, 80, 17, 94, 35, 61, 10, 73, 28, 99, 46, 15, 67, 32, 86, 22, 59, 40,
-    93, 26, 71, 49, 20, 82, 37, 90, 54, 43, 75, 63, 48, 85, 52, 65, 76, 78, 81
-  ];
-
-  function archiveRoll(index) {
-    return `roll ${String(ARCHIVE_ROLLS[index % ARCHIVE_ROLLS.length]).padStart(3, "0")}`;
-  }
-
   function imageUrl(item, photo, width = 1000, crop = "") {
+    const folder = item.photoFolders && item.photoFolders[photo]
+      ? item.photoFolders[photo]
+      : photoFolderIndex[photo] || item.folder;
     const transform = crop ? `f_auto,q_auto,w_${width},${crop}` : `f_auto,q_auto,w_${width}`;
-    return `${CLOUDINARY_BASE}/${transform}/${item.folder}/${encodeURIComponent(photo)}`;
+    return `${CLOUDINARY_BASE}/${transform}/${folder}/${encodeURIComponent(photo)}`;
   }
 
   const sourceSeries = typeof series !== "undefined" && Array.isArray(series) ? series : [];
-  const archives = sourceSeries.filter((item) => (item.type || "archive") !== "chapter");
-  document.getElementById("archive-count").textContent = `${archives.length} archives`;
+  const photoFolderIndex = sourceSeries.reduce((index, item) => {
+    if (!item.folder || !Array.isArray(item.photos)) return index;
+    item.photos.forEach((photo) => {
+      if (!index[photo]) index[photo] = item.folder;
+    });
+    return index;
+  }, {});
+  const chapters = sourceSeries.filter((item) => (item.type || "archive") === "chapter");
+  document.getElementById("archive-count").textContent = `${chapters.length} chapters`;
 
   const archiveList = document.getElementById("archive-list");
-  archives.forEach((item, index) => {
+  chapters.forEach((item, index) => {
     const row = document.createElement("a");
     row.className = "archive-row";
     row.href = `/series.html?s=${item.slug}`;
-    const photo = item.photos?.[index % item.photos.length] || item.photos?.[0];
+    const selected = Array.isArray(item.selectedPhotos) && item.selectedPhotos.length ? item.selectedPhotos : item.photos;
+    const photo = selected?.[index % selected.length] || selected?.[0] || item.photos?.[0];
     row.innerHTML = `
-      <span class="archive-meta">${archiveRoll(index)}</span>
+      <span class="archive-meta">chapter ${String(index + 1).padStart(2, "0")}</span>
       <span class="archive-title">${item.title.toLowerCase()}</span>
       <span class="archive-meta">${(item.meta || "digital").toLowerCase()}</span>
       <span class="archive-arrow">→</span>
