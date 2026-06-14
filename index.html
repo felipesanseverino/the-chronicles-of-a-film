@@ -556,23 +556,62 @@
     "/DSCF0860.JPG"
   ];
 
-  function cloudinaryImage(item, width = 1600, crop = "") {
+  function cloudinaryImage(item, width = 1600, crop = "", photo = item.photo) {
     const cloudinaryBase = typeof CLOUDINARY_BASE !== "undefined" ? CLOUDINARY_BASE : "";
-    if (!cloudinaryBase || !item) return localFallbacks[0];
+    if (!cloudinaryBase || !item || !photo) return localFallbacks[0];
+    const folder = item.photoFolders && item.photoFolders[photo] ? item.photoFolders[photo] : item.folder;
     const transform = crop ? `f_auto,q_auto,w_${width},${crop}` : `f_auto,q_auto,w_${width}`;
-    return `${cloudinaryBase}/${transform}/${item.folder}/${encodeURIComponent(item.photo)}`;
+    return `${cloudinaryBase}/${transform}/${folder}/${encodeURIComponent(photo)}`;
+  }
+
+  function uniquePhotos(lists) {
+    const seen = new Set();
+    return lists
+      .filter(Array.isArray)
+      .flat()
+      .filter((photo) => {
+        if (!photo || seen.has(photo)) return false;
+        seen.add(photo);
+        return true;
+      });
   }
 
   function normalizeItem(item, index) {
+    const photos = uniquePhotos([
+      item.contactSheetPhotos,
+      item.selectedPhotos,
+      item.photos
+    ]);
+    const fallbackPhotos = item.photos && item.photos.length ? item.photos : photos;
+    const displayPhotos = photos.length ? photos : fallbackPhotos;
+
     return {
       slug: item.slug,
       type: item.type || "archive",
       title: item.title.toLowerCase(),
       meta: item.meta ? item.meta.toLowerCase() : "digital",
       folder: item.folder,
-      photo: item.photos[index % item.photos.length],
-      count: item.photos.length
+      photo: displayPhotos[index % displayPhotos.length],
+      photos: displayPhotos,
+      photoFolders: item.photoFolders || {},
+      count: fallbackPhotos.length
     };
+  }
+
+  function attachImageFallback(image, item, width = 1600, crop = "") {
+    let photoIndex = 0;
+    const photos = item.photos && item.photos.length ? item.photos : [item.photo];
+
+    function setImage() {
+      image.src = item.folder ? cloudinaryImage(item, width, crop, photos[photoIndex]) : photos[photoIndex];
+    }
+
+    image.onerror = () => {
+      photoIndex += 1;
+      if (photoIndex < photos.length) setImage();
+    };
+
+    setImage();
   }
 
   function archiveItems() {
@@ -607,7 +646,7 @@
 
   document.querySelectorAll("[data-photo]").forEach((image) => {
     const item = photoPool[Number(image.dataset.photo) % photoPool.length];
-    image.src = item.folder ? cloudinaryImage(item, 1800) : item.photo;
+    attachImageFallback(image, item, 1800);
   });
 
   const chapterList = document.getElementById("chapter-list");
@@ -616,11 +655,12 @@
     link.className = "chapter";
     link.href = `/series.html?s=${item.slug}`;
     link.innerHTML = `
-      <img class="chapter-photo" src="${item.folder ? cloudinaryImage(item, 1100, "c_fill,ar_4:3") : item.photo}" alt="${item.title}">
+      <img class="chapter-photo" alt="${item.title}">
       <div class="chapter-title"><span>${item.title}</span><span>0${index + 1}</span></div>
       <div class="photo-meta">chapter ${String(index + 1).padStart(2, "0")} — ${item.meta}</div>
       <p>${index === 0 ? "sharing the city, beyond the city, sand and water." : index === 1 ? "a chapter arranged by light, gesture, and echo." : "photographs grouped by what they were noticing."}</p>
     `;
+    attachImageFallback(link.querySelector(".chapter-photo"), item, 1100, "c_fill,ar_4:3");
     chapterList.appendChild(link);
   });
 
