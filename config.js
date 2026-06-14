@@ -323,5 +323,18 @@ const series = [
     photos: [
       "STREETCANDY ATM400-0035.jpg",
     ]
+  },
+  {
+    slug: "sand-and-water",
+    type: "chapter",
+    title: "sand and water",
+    meta: "digital • 35mm",
+    selectedPhotos: ["1000125763.jpg","1000125794.jpg","DSCF1872.jpg"],
+    folder: "chronicles/slovenia",
+    photos: [
+      "1000125763.jpg",
+      "1000125794.jpg",
+      "DSCF1872.jpg",
+    ]
   }
 ];
