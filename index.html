@@ -456,7 +456,7 @@
     <section class="hero" aria-label="frontispiece">
       <div class="hero-frame">
         <div class="hero-image-wrap">
-          <img class="hero-image" data-photo="0" alt="a quiet street held in warm light">
+          <img class="hero-image" id="homepage-hero" alt="a quiet street held in warm light">
         </div>
         <div class="hero-line">
           <span>roll 047 — somewhere after rain</span>
@@ -470,7 +470,7 @@
         <div class="chapter-kicker">chapter 00</div>
         <h1>places kept as archives. ideas kept as chapters.</h1>
         <p>
-          the chronicles of a film is my personal photographic journal. an ongoing archive
+          the chronicles of a film is a personal photographic journal. an ongoing archive
           of travel, places, texture, light, and life.
           <br><br>
           shot on film and digital.
@@ -517,10 +517,8 @@
   </main>
 
   <footer class="site-footer">
-    <div class="footer-meta">based in the netherlands · analog & digital</div>
     <div class="footer-meta"><a href="mailto:hello@thechroniclesofafilm">hello@thechroniclesofafilm</a></div>
     <div class="footer-meta"><a href="https://www.instagram.com/thechroniclesofafilm" rel="me">@thechroniclesofafilm</a></div>
-    <div class="footer-meta"><a href="/archive.html">archive</a></div>
   </footer>
 
 <script src="/config.js?v=20260613-archive-chapters"></script>
@@ -626,9 +624,17 @@
 
   const items = archiveItems();
   const chapters = chapterItems();
+  const heroArchive = items.find((item) => item.slug === "japan") || items[0];
   const photoPool = [
     chapters[0], items[2], items[0], items[1], items[3], items[4], items[5], items[6]
   ].filter(Boolean);
+
+  const homepageHero = document.getElementById("homepage-hero");
+  if (homepageHero && heroArchive) {
+    homepageHero.src = heroArchive.folder
+      ? cloudinaryImage(heroArchive, 1800, "", "DSCF2095.jpg")
+      : heroArchive.photo;
+  }
 
   document.querySelectorAll("[data-photo]").forEach((image) => {
     const item = photoPool[Number(image.dataset.photo) % photoPool.length];
