@@ -422,7 +422,9 @@
   ];
 
   function imageUrl(item, photo, width = 1400, crop = "") {
-    const folder = item.photoFolders && item.photoFolders[photo] ? item.photoFolders[photo] : item.folder;
+    const folder = item.photoFolders && item.photoFolders[photo]
+      ? item.photoFolders[photo]
+      : photoFolderIndex[photo] || item.folder;
     const transform = crop ? `f_auto,q_auto,w_${width},${crop}` : `f_auto,q_auto,w_${width}`;
     return `${CLOUDINARY_BASE}/${transform}/${folder}/${encodeURIComponent(photo)}`;
   }
@@ -434,6 +436,13 @@
   }
 
   const sourceSeries = typeof series !== "undefined" && Array.isArray(series) ? series : [];
+  const photoFolderIndex = sourceSeries.reduce((index, item) => {
+    if (!item.folder || !Array.isArray(item.photos)) return index;
+    item.photos.forEach((photo) => {
+      if (!index[photo]) index[photo] = item.folder;
+    });
+    return index;
+  }, {});
   const params = new URLSearchParams(window.location.search);
   const requestedSlug = params.get("s");
   const chapter = sourceSeries.find((item) => item.slug === requestedSlug) || sourceSeries[0];
