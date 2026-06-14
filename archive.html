@@ -294,6 +294,18 @@
 
 <script src="/config.js?v=20260613-archive-chapters"></script>
 <script>
+  const ARCHIVE_ROLLS = [
+    47, 12, 83, 5, 68, 31, 96, 24, 57, 9, 74, 18, 62, 3, 89, 41, 55, 27, 98, 14,
+    70, 36, 1, 92, 44, 21, 79, 6, 53, 33, 87, 16, 60, 39, 95, 11, 72, 29, 50, 8,
+    66, 23, 91, 45, 4, 77, 34, 58, 19, 84, 2, 64, 38, 97, 25, 51, 13, 69, 30, 88,
+    7, 56, 42, 80, 17, 94, 35, 61, 10, 73, 28, 99, 46, 15, 67, 32, 86, 22, 59, 40,
+    93, 26, 71, 49, 20, 82, 37, 90, 54, 43, 75, 63, 48, 85, 52, 65, 76, 78, 81
+  ];
+
+  function archiveRoll(index) {
+    return `roll ${String(ARCHIVE_ROLLS[index % ARCHIVE_ROLLS.length]).padStart(3, "0")}`;
+  }
+
   function imageUrl(item, photo, width = 1000, crop = "") {
     const transform = crop ? `f_auto,q_auto,w_${width},${crop}` : `f_auto,q_auto,w_${width}`;
     return `${CLOUDINARY_BASE}/${transform}/${item.folder}/${encodeURIComponent(photo)}`;
@@ -310,7 +322,7 @@
     row.href = `/series.html?s=${item.slug}`;
     const photo = item.photos?.[index % item.photos.length] || item.photos?.[0];
     row.innerHTML = `
-      <span class="archive-meta">place ${String(index + 1).padStart(2, "0")}</span>
+      <span class="archive-meta">${archiveRoll(index)}</span>
       <span class="archive-title">${item.title.toLowerCase()}</span>
       <span class="archive-meta">${(item.meta || "digital").toLowerCase()}</span>
       <span class="archive-arrow">→</span>
