@@ -209,6 +209,8 @@ const series = [
       "ROLLEI RPX400 - 120MM0005.jpg",
       "FOMAPAN ASA 400 - 120MM0001.jpg",
       "FOMAPAN ASA 400 - 120MM0006.jpg",
+      "1000127166.jpg",
+      "1000127177.jpg",
     ]
   },
   {
