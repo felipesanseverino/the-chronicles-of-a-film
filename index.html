@@ -97,7 +97,7 @@
   }
 
   .hero {
-    min-height: 100svh;
+    min-height: 96svh;
     position: relative;
     overflow: hidden;
   }
@@ -105,13 +105,13 @@
   .hero-frame {
     position: relative;
     width: 100%;
-    min-height: 100svh;
+    min-height: 96svh;
   }
 
   .hero-image-wrap {
     position: relative;
     width: 100%;
-    height: 100svh;
+    height: 96svh;
     background: #11100f;
     overflow: hidden;
   }
@@ -129,9 +129,69 @@
     position: absolute;
     inset: 0;
     background:
-      linear-gradient(to bottom, rgba(27, 26, 24, 0.42), rgba(27, 26, 24, 0.06) 32%, rgba(27, 26, 24, 0.58)),
+      linear-gradient(to right, rgba(27, 26, 24, 0.78), rgba(27, 26, 24, 0.38) 44%, rgba(27, 26, 24, 0.08)),
+      linear-gradient(to bottom, rgba(27, 26, 24, 0.58), rgba(27, 26, 24, 0.08) 34%, rgba(27, 26, 24, 0.68)),
       rgba(27, 26, 24, 0.08);
     pointer-events: none;
+  }
+
+  .hero-content {
+    position: absolute;
+    z-index: 3;
+    left: max(22px, 8vw);
+    right: max(22px, 8vw);
+    bottom: clamp(92px, 14vh, 148px);
+    max-width: 860px;
+  }
+
+  .hero-kicker {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.01em;
+    color: rgba(242, 237, 224, 0.76);
+    text-transform: lowercase;
+  }
+
+  .hero-content h1 {
+    max-width: 820px;
+    margin: 16px 0 0;
+    font-family: var(--display);
+    font-size: clamp(48px, 9vw, 118px);
+    font-weight: 300;
+    font-style: italic;
+    line-height: 0.9;
+    color: var(--ivory);
+  }
+
+  .hero-content p {
+    max-width: 58ch;
+    margin: 28px 0 0;
+    font-size: clamp(19px, 2.2vw, 27px);
+    line-height: 1.52;
+    color: rgba(242, 237, 224, 0.88);
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px 28px;
+    margin-top: 36px;
+  }
+
+  .hero-actions a {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ivory);
+    text-decoration: none;
+    text-transform: lowercase;
+    border-bottom: 1px solid rgba(193, 138, 46, 0.78);
+    padding-bottom: 5px;
+    transition: color 160ms ease, border-color 160ms ease;
+  }
+
+  .hero-actions a:hover {
+    color: var(--ochre);
+    border-color: currentColor;
   }
 
   .hero-line {
@@ -151,16 +211,6 @@
 
   .hero-line span:last-child { color: var(--ochre); }
 
-  .intro {
-    padding: 18vh max(22px, 8vw) 16vh;
-    background: var(--beige);
-    color: var(--espresso);
-  }
-
-  .intro-inner {
-    max-width: 930px;
-  }
-
   .chapter-kicker,
   .archive-meta,
   .photo-meta,
@@ -173,26 +223,8 @@
     text-transform: lowercase;
   }
 
-  .intro h1 {
-    max-width: 780px;
-    margin: 18px 0 0;
-    font-family: var(--display);
-    font-size: clamp(46px, 9vw, 110px);
-    font-weight: 300;
-    font-style: italic;
-    line-height: 0.92;
-    color: var(--espresso);
-  }
-
-  .intro p {
-    max-width: 66ch;
-    margin: 34px 0 0;
-    font-size: clamp(19px, 2.2vw, 27px);
-    line-height: 1.65;
-  }
-
   .chapters {
-    padding: 15vh max(22px, 8vw);
+    padding: 11vh max(22px, 8vw) 15vh;
   }
 
   .section-heading {
@@ -391,13 +423,35 @@
     .site-nav a:nth-child(2) { display: none; }
 
     .hero {
-      min-height: 100svh;
+      min-height: 94svh;
     }
 
     .hero-frame,
     .hero-image-wrap {
-      min-height: 100svh;
-      height: 100svh;
+      min-height: 94svh;
+      height: 94svh;
+    }
+
+    .hero-image {
+      object-position: 58% center;
+    }
+
+    .hero-image-wrap::after {
+      background:
+        linear-gradient(to bottom, rgba(27, 26, 24, 0.72), rgba(27, 26, 24, 0.24) 34%, rgba(27, 26, 24, 0.8)),
+        rgba(27, 26, 24, 0.14);
+    }
+
+    .hero-content {
+      bottom: 106px;
+    }
+
+    .hero-content p {
+      max-width: 34ch;
+    }
+
+    .hero-actions {
+      margin-top: 28px;
     }
 
     .hero-line {
@@ -406,7 +460,6 @@
       bottom: 28px;
     }
 
-    .intro,
     .chapters,
     .archive,
     .about {
@@ -469,23 +522,22 @@
         <div class="hero-image-wrap">
           <img class="hero-image" id="homepage-hero" alt="sail amsterdam rigging against the sky">
         </div>
+        <div class="hero-content">
+          <div class="hero-kicker">chapter 00</div>
+          <h1>places kept as archives. ideas kept as chapters.</h1>
+          <p>
+            the chronicles of a film is a personal photographic journal. an ongoing archive
+            of travel, places, texture, light, and life. shot on film and digital.
+          </p>
+          <div class="hero-actions" aria-label="homepage sections">
+            <a href="#archive">explore archives</a>
+            <a href="#chapters">view chapters</a>
+          </div>
+        </div>
         <div class="hero-line">
           <span>roll 068 — sail amsterdam</span>
           <span>a moment, kept in frames</span>
         </div>
-      </div>
-    </section>
-
-    <section class="intro" aria-label="identity statement">
-      <div class="intro-inner">
-        <div class="chapter-kicker">chapter 00</div>
-        <h1>places kept as archives. ideas kept as chapters.</h1>
-        <p>
-          the chronicles of a film is a personal photographic journal. an ongoing archive
-          of travel, places, texture, light, and life.
-          <br><br>
-          shot on film and digital.
-        </p>
       </div>
     </section>
 
