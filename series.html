@@ -575,10 +575,24 @@
     93, 26, 71, 49, 20, 82, 37, 90, 54, 43, 75, 63, 48, 85, 52, 65, 76, 78, 81
   ];
 
+  const sourceSeries = typeof series !== "undefined" && Array.isArray(series) ? series : [];
+  const archivePhotoFolderIndex = sourceSeries.reduce((index, item) => {
+    if (item.type === "chapter" || !item.folder || !Array.isArray(item.photos)) return index;
+    item.photos.forEach((photo) => {
+      if (!index[photo]) index[photo] = item.folder;
+    });
+    return index;
+  }, {});
+
+  function photoFolderFor(item, photo) {
+    if (item.photoFolders && item.photoFolders[photo]) return item.photoFolders[photo];
+    if (archivePhotoFolderIndex[photo]) return archivePhotoFolderIndex[photo];
+    if (item.type === "chapter" && item.slug) return `chronicles/${item.slug}`;
+    return item.folder;
+  }
+
   function imageUrl(item, photo, width = 1400, crop = "") {
-    const folder = item.photoFolders && item.photoFolders[photo]
-      ? item.photoFolders[photo]
-      : photoFolderIndex[photo] || item.folder;
+    const folder = photoFolderFor(item, photo);
     const transform = crop ? `f_auto,q_auto,w_${width},${crop}` : `f_auto,q_auto,w_${width}`;
     return `${CLOUDINARY_BASE}/${transform}/${folder}/${encodeURIComponent(photo)}`;
   }
@@ -588,15 +602,6 @@
     const requested = Array.isArray(list) ? list.filter((photo) => available.has(photo)) : [];
     return requested.length ? requested : fallback;
   }
-
-  const sourceSeries = typeof series !== "undefined" && Array.isArray(series) ? series : [];
-  const photoFolderIndex = sourceSeries.reduce((index, item) => {
-    if (!item.folder || !Array.isArray(item.photos)) return index;
-    item.photos.forEach((photo) => {
-      if (!index[photo]) index[photo] = item.folder;
-    });
-    return index;
-  }, {});
   const params = new URLSearchParams(window.location.search);
   const requestedSlug = params.get("s");
   const chapter = sourceSeries.find((item) => item.slug === requestedSlug) || sourceSeries[0];

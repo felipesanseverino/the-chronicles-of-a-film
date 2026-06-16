@@ -211,11 +211,7 @@ const series = [
       "FOMAPAN ASA 400 - 120MM0006.jpg",
       "1000127166.jpg",
       "1000127177.jpg",
-    ],
-    photoFolders: {
-      "1000127166.jpg": "chronicles/at-anchor",
-      "1000127177.jpg": "chronicles/at-anchor",
-    }
+    ]
   },
   {
     slug: "slovenia",
