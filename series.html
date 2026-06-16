@@ -108,6 +108,7 @@
     object-fit: cover;
     background: #11100f;
     filter: contrast(1.02) saturate(0.92);
+    cursor: zoom-in;
   }
 
   .kicker,
@@ -184,6 +185,7 @@
     background: #11100f;
     object-fit: cover;
     filter: contrast(1.02) saturate(0.94);
+    cursor: zoom-in;
   }
 
   .contact-sheet {
@@ -229,6 +231,90 @@
     display: block;
     object-fit: cover;
     filter: contrast(1.03) saturate(0.86);
+    cursor: zoom-in;
+  }
+
+  .photo-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 80;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    gap: 18px;
+    padding: max(22px, 4vw);
+    background: rgba(10, 9, 8, 0.94);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 160ms ease;
+  }
+
+  .photo-lightbox[aria-hidden="false"] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .photo-lightbox__top,
+  .photo-lightbox__meta {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: rgba(242, 237, 224, 0.68);
+    text-transform: lowercase;
+  }
+
+  .photo-lightbox__close,
+  .photo-lightbox__nav {
+    color: var(--ivory);
+    background: rgba(27, 26, 24, 0.44);
+    border: 1px solid rgba(242, 237, 224, 0.2);
+    border-radius: 999px;
+    cursor: pointer;
+  }
+
+  .photo-lightbox__close {
+    width: 44px;
+    height: 44px;
+    font-family: var(--mono);
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .photo-lightbox__stage {
+    position: relative;
+    min-height: 0;
+    display: grid;
+    place-items: center;
+  }
+
+  .photo-lightbox__image {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    box-shadow: 0 28px 90px rgba(0, 0, 0, 0.48);
+  }
+
+  .photo-lightbox__nav {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    width: 48px;
+    height: 48px;
+    transform: translateY(-50%);
+    font-size: 28px;
+    line-height: 1;
+  }
+
+  .photo-lightbox__nav--prev { left: 0; }
+  .photo-lightbox__nav--next { right: 0; }
+
+  .photo-lightbox button:hover {
+    border-color: rgba(193, 138, 46, 0.72);
+    color: var(--ochre);
   }
 
   body.archive-page .chapter-hero {
@@ -343,6 +429,18 @@
       gap: 7px;
     }
 
+    .photo-lightbox {
+      padding: 16px;
+      gap: 12px;
+    }
+
+    .photo-lightbox__nav {
+      width: 42px;
+      height: 42px;
+      font-size: 24px;
+      background: rgba(27, 26, 24, 0.62);
+    }
+
     body.archive-page .chapter-hero {
       grid-template-columns: 1fr;
       min-height: 0;
@@ -406,6 +504,22 @@
 
   </main>
 
+  <div class="photo-lightbox" id="photo-lightbox" aria-hidden="true" role="dialog" aria-modal="true" aria-label="larger photo view">
+    <div class="photo-lightbox__top">
+      <span id="photo-lightbox-title"></span>
+      <button class="photo-lightbox__close" type="button" aria-label="close larger photo view">×</button>
+    </div>
+    <div class="photo-lightbox__stage">
+      <button class="photo-lightbox__nav photo-lightbox__nav--prev" type="button" aria-label="previous photo">‹</button>
+      <img class="photo-lightbox__image" id="photo-lightbox-image" alt="">
+      <button class="photo-lightbox__nav photo-lightbox__nav--next" type="button" aria-label="next photo">›</button>
+    </div>
+    <div class="photo-lightbox__meta">
+      <span id="photo-lightbox-caption"></span>
+      <span id="photo-lightbox-count"></span>
+    </div>
+  </div>
+
   <footer class="site-footer">
     <div class="footer-meta" id="footer-title">the chronicles of a film</div>
     <div class="footer-meta"><a href="/archive.html">archive</a></div>
@@ -447,6 +561,22 @@
   const requestedSlug = params.get("s");
   const chapter = sourceSeries.find((item) => item.slug === requestedSlug) || sourceSeries[0];
   const chapterIndex = Math.max(0, sourceSeries.indexOf(chapter));
+  const lightboxPhotos = [];
+
+  function addLightboxPhoto({ img, item, photo, label, index }) {
+    if (!img || !item || !photo) return;
+    const lightboxIndex = lightboxPhotos.length;
+    lightboxPhotos.push({
+      src: imageUrl(item, photo, 2200),
+      alt: img.alt || `${item.title.toLowerCase()} frame ${index + 1}`,
+      title: item.title.toLowerCase(),
+      caption: label
+    });
+    img.dataset.lightboxIndex = lightboxIndex;
+    img.setAttribute("tabindex", "0");
+    img.setAttribute("role", "button");
+    img.setAttribute("aria-label", `open larger version of ${label}`);
+  }
 
   if (chapter) {
     document.title = `${chapter.title.toLowerCase()} — the chronicles of a film`;
@@ -469,7 +599,15 @@
         .trim();
     }
     const heroPhoto = chapter.photos[1] || chapter.photos[0];
-    document.getElementById("hero-image").src = imageUrl(chapter, heroPhoto, 1800);
+    const heroImage = document.getElementById("hero-image");
+    heroImage.src = imageUrl(chapter, heroPhoto, 1800);
+    addLightboxPhoto({
+      img: heroImage,
+      item: chapter,
+      photo: heroPhoto,
+      label: `${contentLabel} ${contentNumber} opening frame`,
+      index: 0
+    });
 
     if (contentType === "chapter") {
       const selected = validPhotoList(chapter, chapter.selectedPhotos, chapter.photos);
@@ -477,9 +615,18 @@
       selected.forEach((photo, index) => {
         const figure = document.createElement("figure");
         figure.className = "photo-frame";
-        figure.innerHTML = `
-          <img src="${imageUrl(chapter, photo, index < 2 ? 1500 : 1200)}" alt="${chapter.title.toLowerCase()} frame ${index + 1}" loading="${index < 2 ? "eager" : "lazy"}">
-        `;
+        const img = document.createElement("img");
+        img.src = imageUrl(chapter, photo, index < 2 ? 1500 : 1200);
+        img.alt = `${chapter.title.toLowerCase()} frame ${index + 1}`;
+        img.loading = index < 2 ? "eager" : "lazy";
+        addLightboxPhoto({
+          img,
+          item: chapter,
+          photo,
+          label: `selected frame ${index + 1}`,
+          index
+        });
+        figure.appendChild(img);
         sequence.appendChild(figure);
       });
     }
@@ -492,13 +639,101 @@
       contactPhotos.forEach((photo, index) => {
         const figure = document.createElement("figure");
         figure.className = "contact-item";
-        figure.innerHTML = `
-          <img src="${imageUrl(chapter, photo, 520, "c_fill,ar_1:1")}" alt="contact frame ${index + 1}" loading="lazy">
-        `;
+        const img = document.createElement("img");
+        img.src = imageUrl(chapter, photo, 520, "c_fill,ar_1:1");
+        img.alt = `contact frame ${index + 1}`;
+        img.loading = "lazy";
+        addLightboxPhoto({
+          img,
+          item: chapter,
+          photo,
+          label: `contact frame ${index + 1}`,
+          index
+        });
+        figure.appendChild(img);
         contact.appendChild(figure);
       });
     }
   }
+
+  const lightbox = document.getElementById("photo-lightbox");
+  const lightboxImage = document.getElementById("photo-lightbox-image");
+  const lightboxTitle = document.getElementById("photo-lightbox-title");
+  const lightboxCaption = document.getElementById("photo-lightbox-caption");
+  const lightboxCount = document.getElementById("photo-lightbox-count");
+  const lightboxPrev = lightbox.querySelector(".photo-lightbox__nav--prev");
+  const lightboxNext = lightbox.querySelector(".photo-lightbox__nav--next");
+  const lightboxClose = lightbox.querySelector(".photo-lightbox__close");
+  let activeLightboxIndex = 0;
+  let previousFocus = null;
+  let touchStartX = 0;
+
+  function showLightboxPhoto(index) {
+    if (!lightboxPhotos.length) return;
+    activeLightboxIndex = (index + lightboxPhotos.length) % lightboxPhotos.length;
+    const photo = lightboxPhotos[activeLightboxIndex];
+    lightboxImage.src = photo.src;
+    lightboxImage.alt = photo.alt;
+    lightboxTitle.textContent = photo.title;
+    lightboxCaption.textContent = photo.caption;
+    lightboxCount.textContent = `${String(activeLightboxIndex + 1).padStart(2, "0")} / ${String(lightboxPhotos.length).padStart(2, "0")}`;
+  }
+
+  function openLightbox(index) {
+    previousFocus = document.activeElement;
+    showLightboxPhoto(index);
+    lightbox.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+    lightboxClose.focus();
+  }
+
+  function closeLightbox() {
+    lightbox.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
+    lightboxImage.removeAttribute("src");
+    if (previousFocus && typeof previousFocus.focus === "function") previousFocus.focus();
+  }
+
+  function previousPhoto() {
+    showLightboxPhoto(activeLightboxIndex - 1);
+  }
+
+  function nextPhoto() {
+    showLightboxPhoto(activeLightboxIndex + 1);
+  }
+
+  document.addEventListener("click", (event) => {
+    const trigger = event.target.closest("[data-lightbox-index]");
+    if (trigger) openLightbox(Number(trigger.dataset.lightboxIndex));
+  });
+
+  document.addEventListener("keydown", (event) => {
+    const trigger = event.target.closest("[data-lightbox-index]");
+    if (trigger && (event.key === "Enter" || event.key === " ")) {
+      event.preventDefault();
+      openLightbox(Number(trigger.dataset.lightboxIndex));
+      return;
+    }
+
+    if (lightbox.getAttribute("aria-hidden") === "true") return;
+    if (event.key === "Escape") closeLightbox();
+    if (event.key === "ArrowLeft") previousPhoto();
+    if (event.key === "ArrowRight") nextPhoto();
+  });
+
+  lightbox.addEventListener("click", (event) => {
+    if (event.target === lightbox) closeLightbox();
+  });
+  lightboxClose.addEventListener("click", closeLightbox);
+  lightboxPrev.addEventListener("click", previousPhoto);
+  lightboxNext.addEventListener("click", nextPhoto);
+  lightbox.addEventListener("touchstart", (event) => {
+    touchStartX = event.touches[0].clientX;
+  }, { passive: true });
+  lightbox.addEventListener("touchend", (event) => {
+    const dx = event.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 48) dx < 0 ? nextPhoto() : previousPhoto();
+  });
 </script>
 <script>
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
