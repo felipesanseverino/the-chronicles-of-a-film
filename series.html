@@ -378,6 +378,46 @@
     text-decoration: none;
   }
 
+  @media (min-width: 861px) {
+    .photo-lightbox {
+      display: block;
+      padding: 0;
+    }
+
+    .photo-lightbox__stage {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .photo-lightbox__image {
+      width: 100vw;
+      height: 100svh;
+      max-width: none;
+      max-height: none;
+      object-fit: cover;
+    }
+
+    .photo-lightbox__top,
+    .photo-lightbox__meta {
+      position: absolute;
+      left: max(24px, 4vw);
+      right: max(24px, 4vw);
+    }
+
+    .photo-lightbox__top {
+      top: max(22px, 4vh);
+    }
+
+    .photo-lightbox__meta {
+      bottom: max(22px, 4vh);
+    }
+
+    .photo-lightbox__nav--prev { left: max(18px, 3vw); }
+    .photo-lightbox__nav--next { right: max(18px, 3vw); }
+  }
+
   @media (max-width: 860px) {
     .site-header {
       align-items: flex-start;
