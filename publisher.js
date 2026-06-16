@@ -1038,6 +1038,9 @@ async function publish() {
   const hero = state.coverSource === "existing" && keptExisting.includes(state.existingHero)
     ? state.existingHero
     : (uploaded[state.heroIndex] || photos[0]);
+  const nextSelectedPhotos = type === "chapter" && selectedPhotos.length
+    ? [...new Set([...selectedPhotos, ...uploaded])]
+    : selectedPhotos;
   setStatus("updating the site", 92);
   const result = await functionFetch("publish", {
     slug,
@@ -1047,7 +1050,7 @@ async function publish() {
     description,
     essayNote,
     closingText,
-    selectedPhotos,
+    selectedPhotos: nextSelectedPhotos,
     contactSheetPhotos,
     captions,
     photoFolders: state.photoFolders,
