@@ -129,6 +129,7 @@ const series = [
     title: "south korea",
     meta: "digital · 35mm",
     description: "home is where your heart is • as an expat, you learn that your heart can be in several places at once home is now everywhere. but outh korea was home in a different way. it brought a nostalgic feeling from childhood; warm, welcoming, fast and slow at the same time. south korea holds a piece of my heart.",
+    selectedPhotos: ["DSCF1255.jpg","DSCF1267.jpg","DSCF1121.jpg","HP5+0032.jpg"],
     folder: "chronicles/south-korea",
     photos: [
       "DSCF0702.jpg",
