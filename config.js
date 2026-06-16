@@ -381,5 +381,15 @@ const series = [
     photos: [
       "1000076209.jpg",
     ]
+  },
+  {
+    slug: "traces-of-time",
+    type: "chapter",
+    title: "traces of time",
+    meta: "digital",
+    folder: "chronicles/traces-of-time",
+    photos: [
+      "1000076209.jpg",
+    ]
   }
 ];
