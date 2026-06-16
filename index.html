@@ -98,19 +98,20 @@
 
   .hero {
     min-height: 100svh;
-    display: grid;
-    place-items: center;
-    padding: 112px max(22px, 8vw) 7vh;
+    position: relative;
+    overflow: hidden;
   }
 
   .hero-frame {
-    width: min(1180px, 100%);
+    position: relative;
+    width: 100%;
+    min-height: 100svh;
   }
 
   .hero-image-wrap {
     position: relative;
     width: 100%;
-    height: min(68svh, 720px);
+    height: 100svh;
     background: #11100f;
     overflow: hidden;
   }
@@ -127,18 +128,24 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: rgba(27, 26, 24, 0.14);
+    background:
+      linear-gradient(to bottom, rgba(27, 26, 24, 0.42), rgba(27, 26, 24, 0.06) 32%, rgba(27, 26, 24, 0.58)),
+      rgba(27, 26, 24, 0.08);
     pointer-events: none;
   }
 
   .hero-line {
+    position: absolute;
+    z-index: 2;
+    left: max(22px, 8vw);
+    right: max(22px, 8vw);
+    bottom: max(24px, 7vh);
     display: flex;
     justify-content: space-between;
     gap: 24px;
-    margin-top: 20px;
     font-family: var(--mono);
     font-size: 12px;
-    color: var(--grey);
+    color: rgba(242, 237, 224, 0.72);
     text-transform: lowercase;
   }
 
@@ -384,15 +391,19 @@
     .site-nav a:nth-child(2) { display: none; }
 
     .hero {
-      padding-top: 92px;
-      min-height: 86svh;
+      min-height: 100svh;
     }
 
-    .hero-image-wrap { height: 58svh; }
+    .hero-frame,
+    .hero-image-wrap {
+      min-height: 100svh;
+      height: 100svh;
+    }
 
     .hero-line {
       flex-direction: column;
       gap: 2px;
+      bottom: 28px;
     }
 
     .intro,
@@ -456,11 +467,11 @@
     <section class="hero" aria-label="frontispiece">
       <div class="hero-frame">
         <div class="hero-image-wrap">
-          <img class="hero-image" id="homepage-hero" alt="a quiet street held in warm light">
+          <img class="hero-image" id="homepage-hero" alt="sail amsterdam rigging against the sky">
         </div>
         <div class="hero-line">
-          <span>roll 047 — somewhere after rain</span>
-          <span>a life, kept in frames</span>
+          <span>roll 047 — sail amsterdam</span>
+          <span>a moment, kept in frames</span>
         </div>
       </div>
     </section>
@@ -624,7 +635,7 @@
 
   const items = archiveItems();
   const chapters = chapterItems();
-  const heroArchive = items.find((item) => item.slug === "japan") || items[0];
+  const heroArchive = items.find((item) => item.slug === "sail-amsterdam") || items[0];
   const photoPool = [
     chapters[0], items[2], items[0], items[1], items[3], items[4], items[5], items[6]
   ].filter(Boolean);
@@ -632,7 +643,7 @@
   const homepageHero = document.getElementById("homepage-hero");
   if (homepageHero && heroArchive) {
     homepageHero.src = heroArchive.folder
-      ? cloudinaryImage(heroArchive, 1800, "", "DSCF2095.jpg")
+      ? cloudinaryImage(heroArchive, 2200, "", "DSCF1782.jpg")
       : heroArchive.photo;
   }
 
