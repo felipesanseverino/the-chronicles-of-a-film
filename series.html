@@ -346,8 +346,11 @@
     height: 100svh;
   }
 
-  body.archive-page .sequence,
   body.chapter-page .contact-sheet {
+    display: none;
+  }
+
+  body.archive-page:not(.has-selected-photos) .sequence {
     display: none;
   }
 
@@ -631,10 +634,24 @@
     return `${CLOUDINARY_BASE}/${transform}/${folder}/${encodeURIComponent(photo)}`;
   }
 
+  function uniquePhotoList(list) {
+    return [...new Set((Array.isArray(list) ? list : []).filter(Boolean))];
+  }
+
   function validPhotoList(item, list, fallback) {
     const available = new Set(item.photos || []);
     const requested = Array.isArray(list) ? list.filter((photo) => available.has(photo)) : [];
     return requested.length ? requested : fallback;
+  }
+
+  function archiveSelectedPhotos(item) {
+    return validPhotoList(item, item.selectedPhotos, []);
+  }
+
+  function archiveContactPhotos(item, selected = archiveSelectedPhotos(item)) {
+    const selectedSet = new Set(selected);
+    const sheet = validPhotoList(item, item.contactSheetPhotos, item.photos || []);
+    return uniquePhotoList(sheet).filter((photo) => !selectedSet.has(photo));
   }
   const params = new URLSearchParams(window.location.search);
   const requestedSlug = params.get("s");
@@ -668,9 +685,13 @@
       ? String(typeIndex + 1).padStart(2, "0")
       : String(ARCHIVE_ROLLS[typeIndex % ARCHIVE_ROLLS.length]).padStart(3, "0");
     const contentLabel = contentType === "chapter" ? "chapter" : "roll";
+    const archiveSelected = contentType === "archive" ? archiveSelectedPhotos(chapter) : [];
+    if (archiveSelected.length) document.body.classList.add("has-selected-photos");
     document.getElementById("chapter-title").textContent = chapter.title.toLowerCase();
     document.getElementById("chapter-meta").textContent = `${contentLabel} ${contentNumber}`;
-    document.getElementById("selected-count").textContent = `${chapter.meta.toLowerCase()} · ${chapter.photos.length} frames`;
+    document.getElementById("selected-count").textContent = `${chapter.meta.toLowerCase()} · ${
+      contentType === "archive" && archiveSelected.length ? archiveSelected.length : chapter.photos.length
+    } frames`;
     document.getElementById("footer-title").textContent = `${chapter.title.toLowerCase()} · the chronicles of a film`;
     if (chapter.description) {
       document.getElementById("chapter-description").textContent = chapter.description
@@ -710,11 +731,32 @@
       });
     }
 
+    if (contentType === "archive" && archiveSelected.length) {
+      const sequence = document.getElementById("photo-sequence");
+      archiveSelected.forEach((photo, index) => {
+        const figure = document.createElement("figure");
+        figure.className = "photo-frame";
+        const img = document.createElement("img");
+        img.src = imageUrl(chapter, photo, index < 2 ? 1500 : 1200);
+        img.alt = `${chapter.title.toLowerCase()} selected frame ${index + 1}`;
+        img.loading = index < 2 ? "eager" : "lazy";
+        addLightboxPhoto({
+          img,
+          item: chapter,
+          photo,
+          label: `selected frame ${index + 1}`,
+          index
+        });
+        figure.appendChild(img);
+        sequence.appendChild(figure);
+      });
+    }
+
     if (contentType === "archive") {
       const contact = document.getElementById("contact-grid");
       const contactHeading = document.querySelector(".contact-head h2");
       if (contactHeading) contactHeading.textContent = "archive contact sheet";
-      const contactPhotos = validPhotoList(chapter, chapter.contactSheetPhotos, chapter.photos);
+      const contactPhotos = archiveContactPhotos(chapter, archiveSelected);
       contactPhotos.forEach((photo, index) => {
         const figure = document.createElement("figure");
         figure.className = "contact-item";

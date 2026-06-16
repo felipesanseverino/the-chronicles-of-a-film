@@ -331,6 +331,13 @@ function renderArchiveFolders() {
   renderArchiveBrowser();
 }
 
+function updateSiteControlLabels() {
+  const isArchive = els.contentType.value !== "chapter";
+  els.useAsChapterPhotosBtn.textContent = isArchive ? "use as archive photos" : "use as photos";
+  els.addSelectedFramesBtn.textContent = isArchive ? "remove from sheet" : "selected frames";
+  els.addContactSheetBtn.hidden = isArchive;
+}
+
 function selectedArchiveSeries() {
   return archiveItems().find((s) => s.slug === els.archiveSource.value) || archiveItems()[0];
 }
@@ -415,13 +422,18 @@ function applyArchiveSelection(target) {
   useArchiveFolderForCurrentItem();
   rememberArchiveSources(entries);
   if (target === "photos") {
-    setTextareaList(els.selectedPhotos, selected);
-    setStatus("archive photos set for this chapter", 100);
+    if (els.contentType.value === "chapter") {
+      setTextareaList(els.selectedPhotos, selected);
+      setStatus("archive photos set for this chapter", 100);
+    } else {
+      setTextareaList(els.contactSheetPhotos, selected);
+      setStatus("archive photos set for the contact sheet", 100);
+    }
     return;
   }
   if (target === "selected") {
     appendTextareaList(els.selectedPhotos, selected);
-    setStatus("selected frames updated", 100);
+    setStatus(els.contentType.value === "chapter" ? "selected frames updated" : "selected frames removed from sheet", 100);
     return;
   }
   if (target === "contact") {
@@ -728,6 +740,7 @@ function fillFromSeries() {
   if (!s) return;
   els.title.value = s.title || "";
   els.contentType.value = s.type === "chapter" ? "chapter" : "archive";
+  updateSiteControlLabels();
   els.slug.value = s.slug || "";
   els.meta.value = s.meta || "";
   els.sourceFolder.value = s.folder || "";
@@ -761,6 +774,7 @@ function setMode(mode) {
     state.chapterSourceFolder = "";
     state.photoFolders = {};
     els.contentType.value = "archive";
+    updateSiteControlLabels();
     els.sourceFolder.value = "";
     els.essayNote.value = "";
     els.closingText.value = "";
@@ -803,10 +817,15 @@ function renderExistingPhotos() {
 
   state.existingPhotos.forEach((photo) => {
     const removed = state.removedPhotos.has(photo);
+    const listTarget = els.selectedPhotos;
+    const isArchive = (s.type || "archive") !== "chapter";
+    const listLabel = isArchive ? "sel" : "seq";
+    const isListed = textareaList(listTarget).includes(photo);
     const card = document.createElement("div");
     card.className = [
       "photo-card",
       state.coverSource === "existing" && state.existingHero === photo && !removed ? "hero" : "",
+      isListed && !removed ? "selected" : "",
       removed ? "removed" : "",
     ].filter(Boolean).join(" ");
 
@@ -840,10 +859,8 @@ function renderExistingPhotos() {
 
     const listBtn = document.createElement("button");
     listBtn.type = "button";
-    const listTarget = s.type === "chapter" ? els.selectedPhotos : els.contactSheetPhotos;
-    const listLabel = s.type === "chapter" ? "seq" : "sheet";
-    const isListed = textareaList(listTarget).includes(photo);
     listBtn.textContent = isListed ? listLabel : `${listLabel}+`;
+    listBtn.title = isArchive ? "toggle selected frame and remove from contact sheet" : "toggle selected sequence frame";
     listBtn.hidden = removed;
     listBtn.addEventListener("click", () => {
       const current = textareaList(listTarget);
@@ -1145,6 +1162,7 @@ els.postTimezone.addEventListener("change", () => {
     }
   })();
 });
+els.contentType.addEventListener("change", updateSiteControlLabels);
 els.title.addEventListener("input", () => {
   if (state.mode === "new") els.slug.value = slugify(els.title.value);
 });
@@ -1169,6 +1187,7 @@ els.publishBtn.addEventListener("click", async () => {
 loadStudioState();
 renderSettings();
 renderQueue();
+updateSiteControlLabels();
 loadSeries().then(() => {
   if (state.mode === "update" && state.series.length) fillFromSeries();
   renderCloudBrowser();
