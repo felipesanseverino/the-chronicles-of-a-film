@@ -223,8 +223,12 @@
   }
 
   .chapter {
+    position: relative;
+    display: block;
+    overflow: hidden;
     text-decoration: none;
     color: inherit;
+    background: #11100f;
   }
 
   .chapter-photo {
@@ -237,21 +241,40 @@
     transition: filter 200ms ease, transform 260ms ease;
   }
 
+  .chapter::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(to bottom, rgba(27, 26, 24, 0.08), rgba(27, 26, 24, 0.4) 44%, rgba(27, 26, 24, 0.86)),
+      linear-gradient(to right, rgba(27, 26, 24, 0.5), rgba(27, 26, 24, 0.02));
+    pointer-events: none;
+  }
+
+  .chapter-overlay {
+    position: absolute;
+    z-index: 2;
+    left: clamp(20px, 4vw, 38px);
+    right: clamp(20px, 4vw, 38px);
+    bottom: clamp(20px, 3vw, 34px);
+  }
+
   .chapter:hover .chapter-photo {
     filter: contrast(1.04) saturate(1);
-    transform: translateY(-2px);
+    transform: scale(1.025);
   }
 
   .chapter-title {
     display: flex;
     justify-content: space-between;
     gap: 20px;
-    margin-top: 18px;
+    margin: 0;
     font-family: var(--display);
     font-size: clamp(30px, 4vw, 54px);
     font-weight: 300;
     font-style: italic;
     line-height: 1.05;
+    color: var(--ivory);
   }
 
   .chapter-title span:last-child {
@@ -259,10 +282,15 @@
     font-style: normal;
   }
 
+  .chapter-overlay .photo-meta {
+    margin-top: 8px;
+    color: rgba(242, 237, 224, 0.68);
+  }
+
   .chapter p {
     max-width: 44ch;
     margin: 12px 0 0;
-    color: rgba(242, 237, 224, 0.72);
+    color: rgba(242, 237, 224, 0.82);
     font-style: italic;
   }
 
@@ -673,9 +701,11 @@
     link.href = `/series.html?s=${item.slug}`;
     link.innerHTML = `
       <img class="chapter-photo" alt="${item.title}">
-      <div class="chapter-title"><span>${item.title}</span><span>0${index + 1}</span></div>
-      <div class="photo-meta">chapter ${String(index + 1).padStart(2, "0")} — ${item.meta}</div>
-      <p>${index === 0 ? "sharing the city, beyond the city, sand and water." : index === 1 ? "a chapter arranged by light, gesture, and echo." : "photographs grouped by what they were noticing."}</p>
+      <div class="chapter-overlay">
+        <div class="chapter-title"><span>${item.title}</span><span>0${index + 1}</span></div>
+        <div class="photo-meta">chapter ${String(index + 1).padStart(2, "0")} — ${item.meta}</div>
+        <p>${index === 0 ? "sharing the city, beyond the city, sand and water." : index === 1 ? "a chapter arranged by light, gesture, and echo." : "photographs grouped by what they were noticing."}</p>
+      </div>
     `;
     attachImageFallback(link.querySelector(".chapter-photo"), item, 1100, "c_fill,ar_4:3");
     chapterList.appendChild(link);
