@@ -669,8 +669,8 @@
       : String(ARCHIVE_ROLLS[typeIndex % ARCHIVE_ROLLS.length]).padStart(3, "0");
     const contentLabel = contentType === "chapter" ? "chapter" : "roll";
     document.getElementById("chapter-title").textContent = chapter.title.toLowerCase();
-    document.getElementById("chapter-meta").textContent = `${contentLabel} ${contentNumber} — ${chapter.meta.toLowerCase()}`;
-    document.getElementById("selected-count").textContent = `${chapter.photos.length} frames`;
+    document.getElementById("chapter-meta").textContent = `${contentLabel} ${contentNumber}`;
+    document.getElementById("selected-count").textContent = `${chapter.meta.toLowerCase()} · ${chapter.photos.length} frames`;
     document.getElementById("footer-title").textContent = `${chapter.title.toLowerCase()} · the chronicles of a film`;
     if (chapter.description) {
       document.getElementById("chapter-description").textContent = chapter.description
