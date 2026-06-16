@@ -321,10 +321,19 @@ const series = [
     type: "chapter",
     title: "sharing the city",
     meta: "digital · 35mm",
-    selectedPhotos: ["STREETCANDY ATM400-0035.jpg"],
+    selectedPhotos: ["DSCF2096.jpg","DSCF2300.jpg","DSCF2359.jpg","DSCF2369.jpg","DSCF2370.jpg","DSCF2376.jpg","DSCF2459.jpg","DSCF2532.jpg"],
+    photoFolders: {"DSCF2096.jpg":"chronicles/japan","DSCF2300.jpg":"chronicles/japan","DSCF2359.jpg":"chronicles/japan","DSCF2369.jpg":"chronicles/japan","DSCF2370.jpg":"chronicles/japan","DSCF2376.jpg":"chronicles/japan","DSCF2459.jpg":"chronicles/japan","DSCF2532.jpg":"chronicles/japan"},
     folder: "chronicles/haarlem",
     photos: [
       "STREETCANDY ATM400-0035.jpg",
+      "DSCF2096.jpg",
+      "DSCF2300.jpg",
+      "DSCF2359.jpg",
+      "DSCF2369.jpg",
+      "DSCF2370.jpg",
+      "DSCF2376.jpg",
+      "DSCF2459.jpg",
+      "DSCF2532.jpg",
     ]
   },
   {
