@@ -306,6 +306,8 @@
   .archive-list {
     max-width: 1160px;
     margin: 0 auto;
+    display: grid;
+    gap: 8px;
   }
 
   .archive-row {
@@ -314,9 +316,42 @@
     grid-template-columns: 130px minmax(0, 1fr) 220px;
     gap: 34px;
     align-items: baseline;
-    padding: 23px 0 21px;
-    border-bottom: 1px solid rgba(139, 133, 122, 0.25);
+    min-height: clamp(84px, 9vw, 116px);
+    padding: 23px clamp(20px, 3vw, 34px) 21px;
+    overflow: hidden;
+    isolation: isolate;
+    background: #11100f;
+    border: 1px solid rgba(139, 133, 122, 0.22);
     text-decoration: none;
+    color: var(--ivory);
+  }
+
+  .archive-row::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(to right, rgba(27, 26, 24, 0.86), rgba(27, 26, 24, 0.48) 48%, rgba(27, 26, 24, 0.74)),
+      linear-gradient(to bottom, rgba(27, 26, 24, 0.2), rgba(27, 26, 24, 0.68));
+    pointer-events: none;
+  }
+
+  .archive-bg {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: contrast(1.03) saturate(0.82);
+    transform: scale(1.01);
+    transition: filter 220ms ease, transform 320ms ease;
+  }
+
+  .archive-row:hover .archive-bg {
+    filter: contrast(1.05) saturate(1);
+    transform: scale(1.035);
   }
 
   .archive-title {
@@ -328,25 +363,12 @@
     color: var(--ivory);
   }
 
-  .archive-row:hover .archive-title { color: var(--ochre); }
-
-  .archive-thumb {
-    position: absolute;
-    top: 50%;
-    right: 16%;
-    width: min(23vw, 290px);
-    aspect-ratio: 4 / 3;
-    object-fit: cover;
-    opacity: 0;
-    transform: translateY(-50%) translateX(16px);
-    pointer-events: none;
-    transition: opacity 180ms ease, transform 180ms ease;
-    box-shadow: 0 26px 80px rgba(0, 0, 0, 0.34);
+  .archive-row .archive-meta {
+    color: rgba(242, 237, 224, 0.72);
   }
 
-  .archive-row:hover .archive-thumb {
-    opacity: 1;
-    transform: translateY(-50%) translateX(0);
+  .archive-row:hover .archive-title {
+    color: var(--ochre);
   }
 
   .about {
@@ -463,14 +485,13 @@
     .archive-row {
       grid-template-columns: 78px 1fr;
       gap: 18px;
-      padding: 20px 0;
+      min-height: 96px;
+      padding: 20px;
     }
 
     .archive-row .archive-meta:last-of-type {
       grid-column: 2;
     }
-
-    .archive-thumb { display: none; }
 
     .about-inner {
       grid-template-columns: 1fr;
@@ -721,11 +742,12 @@
     row.className = "archive-row";
     row.href = `/series.html?s=${item.slug}`;
     row.innerHTML = `
+      <img class="archive-bg" alt="">
       <span class="archive-meta">${archiveRoll(index)}</span>
       <span class="archive-title">${item.title}</span>
       <span class="archive-meta">${item.meta}</span>
-      <img class="archive-thumb" src="${item.folder ? cloudinaryImage(item, 620, "c_fill,ar_4:3") : item.photo}" alt="">
     `;
+    attachImageFallback(row.querySelector(".archive-bg"), item, 1400, "c_fill,ar_16:9");
     archiveList.appendChild(row);
   });
 </script>
