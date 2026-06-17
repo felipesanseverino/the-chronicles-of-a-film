@@ -102,6 +102,25 @@ function cloudUrl(folder, filename, transforms = "f_auto,q_auto,w_360") {
   return `${CLOUDINARY_BASE_URL}/${transforms}/${folder}/${encodeURIComponent(filename)}`;
 }
 
+function photoFolderFor(series, filename) {
+  return (series?.photoFolders && series.photoFolders[filename]) || state.photoFolders[filename] || series?.folder || "";
+}
+
+function cloudPhotoUrl(series, filename, transforms = "f_auto,q_auto,w_360") {
+  return cloudUrl(photoFolderFor(series, filename), filename, transforms);
+}
+
+function createPhotoImage(series, filename) {
+  const img = document.createElement("img");
+  img.src = cloudPhotoUrl(series, filename);
+  img.alt = filename;
+  img.addEventListener("error", () => {
+    img.hidden = true;
+    img.closest(".photo-card")?.classList.add("image-missing");
+  }, { once: true });
+  return img;
+}
+
 function sourceKey(folder, filename) {
   return `${folder}/${filename}`;
 }
@@ -354,15 +373,15 @@ function visibleArchivePhotos() {
 function selectedArchivePhotoNames() {
   const s = selectedArchiveSeries();
   if (!s) return [];
-  return (s.photos || []).filter((filename) => state.archiveSelections.has(sourceKey(s.folder, filename)));
+  return (s.photos || []).filter((filename) => state.archiveSelections.has(sourceKey(photoFolderFor(s, filename), filename)));
 }
 
 function selectedArchivePhotoEntries() {
   const s = selectedArchiveSeries();
   if (!s) return [];
   return (s.photos || [])
-    .filter((filename) => state.archiveSelections.has(sourceKey(s.folder, filename)))
-    .map((filename) => ({ filename, folder: s.folder }));
+    .filter((filename) => state.archiveSelections.has(sourceKey(photoFolderFor(s, filename), filename)))
+    .map((filename) => ({ filename, folder: photoFolderFor(s, filename) }));
 }
 
 function useArchiveFolderForCurrentItem() {
@@ -389,7 +408,8 @@ function renderArchiveBrowser() {
   els.archiveBrowser.innerHTML = "";
 
   photos.forEach(({ series: archive, filename }) => {
-    const key = sourceKey(archive.folder, filename);
+    const folder = photoFolderFor(archive, filename);
+    const key = sourceKey(folder, filename);
     const card = document.createElement("button");
     card.type = "button";
     card.className = [
@@ -398,11 +418,12 @@ function renderArchiveBrowser() {
     ].filter(Boolean).join(" ");
     card.title = `${filename} - ${archive.title}`;
 
-    const img = document.createElement("img");
-    img.src = cloudUrl(archive.folder, filename);
-    img.alt = filename;
+    const img = createPhotoImage(archive, filename);
+    const name = document.createElement("span");
+    name.className = "photo-name";
+    name.textContent = filename;
 
-    card.append(img);
+    card.append(img, name);
     card.addEventListener("click", () => {
       if (state.archiveSelections.has(key)) state.archiveSelections.delete(key);
       else state.archiveSelections.add(key);
@@ -467,21 +488,23 @@ function renderCloudBrowser() {
   els.cloudBrowser.innerHTML = "";
 
   photos.forEach(({ series: s, filename }) => {
-    const key = sourceKey(s.folder, filename);
+    const folder = photoFolderFor(s, filename);
+    const key = sourceKey(folder, filename);
     const card = document.createElement("button");
     card.type = "button";
     card.className = [
       "photo-card",
       state.cloudSelections.has(key) ? "selected" : "",
-      queuedBefore(s.folder, filename) ? "duplicate" : "",
+      queuedBefore(folder, filename) ? "duplicate" : "",
     ].filter(Boolean).join(" ");
     card.title = `${filename} - ${s.title}`;
 
-    const img = document.createElement("img");
-    img.src = cloudUrl(s.folder, filename);
-    img.alt = filename;
+    const img = createPhotoImage(s, filename);
+    const name = document.createElement("span");
+    name.className = "photo-name";
+    name.textContent = filename;
 
-    card.append(img);
+    card.append(img, name);
     card.addEventListener("click", () => {
       if (state.cloudSelections.has(key)) state.cloudSelections.delete(key);
       else state.cloudSelections.add(key);
@@ -829,9 +852,10 @@ function renderExistingPhotos() {
       removed ? "removed" : "",
     ].filter(Boolean).join(" ");
 
-    const img = document.createElement("img");
-    img.src = cloudUrl(s.folder, photo);
-    img.alt = photo;
+    const img = createPhotoImage(s, photo);
+    const name = document.createElement("span");
+    name.className = "photo-name";
+    name.textContent = photo;
 
     const actions = document.createElement("div");
     actions.className = "photo-actions";
@@ -870,7 +894,7 @@ function renderExistingPhotos() {
     });
 
     actions.append(coverBtn, listBtn, toggleBtn);
-    card.append(img, actions);
+    card.append(img, name, actions);
     els.currentPhotoGrid.append(card);
   });
 }
@@ -953,17 +977,18 @@ async function uploadOne(file, slug) {
   return photoNameFromFile(file);
 }
 
-function queueEntryFromPhoto({ series: s, filename }, copy = {}) {
+function queueEntryFromPhoto({ series: s, filename, folder }, copy = {}) {
   const baseName = publicIdFromName(filename);
   const id = copy.id || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const sourceFolder = folder || photoFolderFor(s, filename);
   return {
     id,
     cloudinary_asset_id: copy.cloudinary_asset_id || "",
-    cloudinary_public_id: sourceKey(s.folder, filename),
-    original_folder: s.folder,
+    cloudinary_public_id: sourceKey(sourceFolder, filename),
+    original_folder: sourceFolder,
     filename,
     queue_public_id: copy.queue_public_id || `autogram_queue/${baseName}`,
-    queue_url: copy.queue_url || cloudUrl(s.folder, filename),
+    queue_url: copy.queue_url || cloudUrl(sourceFolder, filename),
     cloudinary_phash: copy.cloudinary_phash || "",
     caption: copy.caption || "",
     status: copy.status || "queued",
@@ -974,8 +999,9 @@ function queueEntryFromPhoto({ series: s, filename }, copy = {}) {
 
 async function copyToInstagramQueue(photo) {
   try {
+    const sourceFolder = photo.folder || photoFolderFor(photo.series, photo.filename);
     const copy = await functionFetch("queue-copy", {
-      sourceFolder: photo.series.folder,
+      sourceFolder,
       filename: photo.filename,
     });
     state.queueBackendReady = true;
@@ -989,7 +1015,9 @@ async function copyToInstagramQueue(photo) {
 }
 
 async function queueSelectedPhotos() {
-  const selected = visibleCloudPhotos().filter(({ series: s, filename }) => state.cloudSelections.has(sourceKey(s.folder, filename)));
+  const selected = visibleCloudPhotos()
+    .map((photo) => ({ ...photo, folder: photoFolderFor(photo.series, photo.filename) }))
+    .filter(({ folder, filename }) => state.cloudSelections.has(sourceKey(folder, filename)));
   if (!selected.length) {
     setStatus("select photos to queue", 0);
     return;
@@ -1002,7 +1030,7 @@ async function queueSelectedPhotos() {
 
   for (let i = 0; i < selected.length; i += 1) {
     const photo = selected[i];
-    const key = sourceKey(photo.series.folder, photo.filename);
+    const key = sourceKey(photo.folder, photo.filename);
     if (current.has(key)) continue;
     setStatus(`queueing ${photo.filename}`, Math.round((i / selected.length) * 80) + 10);
     next.push(await copyToInstagramQueue(photo));
@@ -1193,3 +1221,7 @@ loadSeries().then(() => {
   renderCloudBrowser();
   return loadQueue();
 }).catch(() => setStatus("could not load current series", 0));
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js").catch(() => {});
+}
