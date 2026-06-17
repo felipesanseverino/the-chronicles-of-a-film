@@ -358,7 +358,7 @@ const series = [
     type: "chapter",
     title: "night lights",
     meta: "digital • 35mm",
-    selectedPhotos: ["DSCF2014.jpg","DSCF2021.jpg","DSCF2108.jpg","DSCF2117.jpg","DSCF2131.jpg","DSCF2219.jpg","DSCF2549.jpg","DSCF2556.jpg"],
+    selectedPhotos: ["DSCF2014.jpg","DSCF2021.jpg","DSCF2108.jpg","DSCF2117.jpg","DSCF2131.jpg","DSCF2219.jpg","DSCF2549.jpg","DSCF2556.jpg","4AF441ED-277D-4877-B982-3E69333229C5-1_ALL_454.jpg"],
     photoFolders: {"DSCF2014.jpg":"chronicles/japan","DSCF2021.jpg":"chronicles/japan","DSCF2108.jpg":"chronicles/japan","DSCF2117.jpg":"chronicles/japan","DSCF2131.jpg":"chronicles/japan","DSCF2219.jpg":"chronicles/japan","DSCF2549.jpg":"chronicles/japan","DSCF2556.jpg":"chronicles/japan"},
     folder: "chronicles/japan",
     photos: [
@@ -370,6 +370,7 @@ const series = [
       "DSCF2219.jpg",
       "DSCF2549.jpg",
       "DSCF2556.jpg",
+      "4AF441ED-277D-4877-B982-3E69333229C5-1_ALL_454.jpg",
     ]
   },
   {
