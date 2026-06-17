@@ -362,6 +362,7 @@ const series = [
     photoFolders: {"DSCF2014.jpg":"chronicles/japan","DSCF2021.jpg":"chronicles/japan","DSCF2108.jpg":"chronicles/japan","DSCF2117.jpg":"chronicles/japan","DSCF2131.jpg":"chronicles/japan","DSCF2219.jpg":"chronicles/japan","DSCF2549.jpg":"chronicles/japan","DSCF2556.jpg":"chronicles/japan"},
     folder: "chronicles/japan",
     photos: [
+      "4AF441ED-277D-4877-B982-3E69333229C5-1_ALL_454.jpg",
       "DSCF2014.jpg",
       "DSCF2021.jpg",
       "DSCF2108.jpg",
@@ -370,7 +371,6 @@ const series = [
       "DSCF2219.jpg",
       "DSCF2549.jpg",
       "DSCF2556.jpg",
-      "4AF441ED-277D-4877-B982-3E69333229C5-1_ALL_454.jpg",
     ]
   },
   {
