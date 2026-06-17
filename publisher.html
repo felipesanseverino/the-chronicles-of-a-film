@@ -3,10 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#0e0e0e">
+<meta name="theme-color" content="#1A1A1A">
 <meta name="robots" content="noindex">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="apple-mobile-web-app-title" content="tcof studio">
 <title>tcof studio</title>
-<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="apple-touch-icon" href="/assets/tcof-studio-app-icon.png">
+<link rel="manifest" href="/publisher-manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Overpass+Mono:wght@300;400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="publisher.css">
@@ -245,5 +251,8 @@
   <script src="publisher-config.js"></script>
   <script src="config.js"></script>
   <script src="publisher.js"></script>
+  <script>
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js").catch(() => {});
+  </script>
 </body>
 </html>
