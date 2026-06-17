@@ -234,6 +234,7 @@ const series = [
     photos: [
       "V600067.jpg",
       "DSCF0306.jpg",
+      "76820029.jpg",
     ]
   },
   {
