@@ -270,7 +270,7 @@ async function route(req, res) {
   // Save metadata only (no upload)
   if (m === 'POST' && path === '/api/save') {
     const { slug, type, title, meta, description, essayNote, closingText, selectedPhotos, contactSheetPhotos, captions } = await body(req);
-    const series = readRemoteConfig();
+    const series = readConfig();
     const idx = series.findIndex(s => s.slug === slug);
     if (idx === -1) { res.writeHead(404); return res.end(JSON.stringify({ error: 'not found' })); }
     if (title) series[idx].title = title;
