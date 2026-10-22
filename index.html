@@ -12,7 +12,7 @@
 <link rel="manifest" href="/manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Courier+Prime:wght@400&family=Spectral:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; }
 
@@ -25,9 +25,10 @@
     --espresso: #3A2E25;
     --burgundy: #5E3A36;
     --olive: #4B4A37;
-    --display: "Cormorant Garamond", Georgia, serif;
-    --text: "Spectral", Georgia, serif;
-    --mono: "Courier Prime", "Courier New", monospace;
+    --logo: "Cormorant Garamond", Georgia, serif;
+    --display: "Poppins", Arial, sans-serif;
+    --text: "Poppins", Arial, sans-serif;
+    --mono: "Poppins", Arial, sans-serif;
   }
 
   html { scroll-behavior: smooth; }
@@ -68,7 +69,7 @@
   }
 
   .wordmark {
-    font-family: var(--display);
+    font-family: var(--logo);
     font-size: clamp(18px, 2.2vw, 25px);
     font-weight: 300;
     text-decoration: none;
@@ -387,7 +388,7 @@
   }
 
   .stacked-logo {
-    font-family: var(--display);
+    font-family: var(--logo);
     font-size: clamp(46px, 7vw, 86px);
     font-weight: 300;
     line-height: 0.86;
@@ -531,7 +532,7 @@
 
     <section class="intro" aria-label="identity statement">
       <div class="intro-inner">
-        <div class="chapter-kicker">chapter 00</div>
+
         <h1>places kept as archives. ideas kept as chapters.</h1>
         <p>
           the chronicles of a film is a personal photographic journal. an ongoing archive
@@ -545,7 +546,7 @@
     <section class="chapters" id="chapters" aria-label="chapters">
       <div class="section-heading">
         <h2>chapters</h2>
-        <span class="chapter-kicker">ideas, moods, observations</span>
+
       </div>
       <div class="chapter-list" id="chapter-list"></div>
     </section>
