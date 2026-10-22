@@ -132,13 +132,10 @@ const series = [
       "DSCF2537.jpg",
       "DSCF2521.jpg",
       "DSCF2543.jpg",
-      "DSCF2541.jpg",
-      "DSCF2542.jpg",
       "DSCF2580.jpg",
       "DSCF2616.jpg",
       "DSCF2615.jpg",
       "DSCF2582.jpg",
-      "DSCF2584.jpg",
     ]
   },
   {
