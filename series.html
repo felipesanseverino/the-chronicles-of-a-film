@@ -686,14 +686,14 @@
     const typeIndex = sourceSeries
       .filter((item) => (item.type === "chapter" ? "chapter" : "archive") === contentType)
       .indexOf(chapter);
-    const contentNumber = contentType === "chapter"
-      ? String(typeIndex + 1).padStart(2, "0")
-      : String(ARCHIVE_ROLLS[typeIndex % ARCHIVE_ROLLS.length]).padStart(3, "0");
-    const contentLabel = contentType === "chapter" ? "chapter" : "roll";
     const archiveSelected = contentType === "archive" ? archiveSelectedPhotos(chapter) : [];
     if (archiveSelected.length) document.body.classList.add("has-selected-photos");
     document.getElementById("chapter-title").textContent = chapter.title.toLowerCase();
-    document.getElementById("chapter-meta").textContent = `${contentLabel} ${contentNumber}`;
+    const chapterMeta = document.getElementById("chapter-meta");
+    chapterMeta.hidden = contentType === "chapter";
+    chapterMeta.textContent = contentType === "archive"
+      ? `roll ${String(ARCHIVE_ROLLS[typeIndex % ARCHIVE_ROLLS.length]).padStart(3, "0")}`
+      : "";
     document.getElementById("selected-count").textContent = `${chapter.meta.toLowerCase()} · ${
       contentType === "archive" && archiveSelected.length ? archiveSelected.length : chapter.photos.length
     } frames`;
