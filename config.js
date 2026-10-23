@@ -410,5 +410,20 @@ const series = [
     photos: [
       "1000076209.jpg",
     ]
+  },
+  {
+    slug: "c-te-d-azur",
+    title: "cote d'azur",
+    meta: "digital",
+    homepageCover: "1000127353.jpg",
+    pageCover: "1000127105.jpg",
+    folder: "chronicles/c-te-d-azur",
+    photos: [
+      "1000127105.jpg",
+      "1000127352.jpg",
+      "1000127134.jpg",
+      "1000127353.jpg",
+      "1000127090.jpg",
+    ]
   }
 ];
