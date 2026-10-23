@@ -105,9 +105,9 @@ const series = [
   {
     slug: "tokyo-toilet",
     type: "chapter",
-    homepageText: "sharing the city, beyond the city, sand and water.",
     title: "tokyo toilet",
     meta: "digital",
+    homepageText: "toilets. and more toilets.",
     description: "usually i’m not the one choosing where to go on holiday. i don’t like to plan; and that’s good, because it’s always a surprise, no expectations, just the here and now. but this time was different. i had to go. i had to take a photo of all 17 public toilets of the tokyo toilet project.\nmore info about the project here:  https://tokyotoilet.jp/en/",
     folder: "chronicles/tokyo-toilet",
     photos: [
@@ -213,9 +213,9 @@ const series = [
   {
     slug: "at-anchor",
     type: "chapter",
-    homepageText: "a chapter arranged by light, gesture, and echo.",
     title: "at anchor",
     meta: "digital · 35mm",
+    homepageText: "a chapter arranged by light, gesture, and echo.",
     description: "boats, masts, water, and the quiet weight of things held in place.",
     folder: "chronicles/sail-amsterdam",
     photos: [
@@ -337,9 +337,9 @@ const series = [
   {
     slug: "sharing-the-city",
     type: "chapter",
-    homepageText: "photographs grouped by what they were noticing.",
     title: "sharing the city",
     meta: "digital · 35mm",
+    homepageText: "photographs grouped by what they were noticing.",
     selectedPhotos: ["DSCF2096.jpg","DSCF2300.jpg","DSCF2359.jpg","DSCF2369.jpg","DSCF2370.jpg","DSCF2376.jpg","DSCF2459.jpg","DSCF2532.jpg","STREETCANDY ATM400-0035.jpg"],
     photoFolders: {"DSCF2096.jpg":"chronicles/japan","DSCF2300.jpg":"chronicles/japan","DSCF2359.jpg":"chronicles/japan","DSCF2369.jpg":"chronicles/japan","DSCF2370.jpg":"chronicles/japan","DSCF2376.jpg":"chronicles/japan","DSCF2459.jpg":"chronicles/japan","DSCF2532.jpg":"chronicles/japan","STREETCANDY ATM400-0035.jpg":"chronicles/haarlem"},
     folder: "chronicles/haarlem",
@@ -358,9 +358,9 @@ const series = [
   {
     slug: "sand-and-water",
     type: "chapter",
-    homepageText: "photographs grouped by what they were noticing.",
     title: "sand and water",
     meta: "digital • 35mm",
+    homepageText: "photographs grouped by what they were noticing.",
     selectedPhotos: ["DSCF1872.jpg","1000125763.jpg","1000125794.jpg","1000117394.jpg"],
     contactSheetPhotos: ["1000125763.jpg","1000125794.jpg"],
     photoFolders: {"1000125763.jpg":"chronicles/venezia","1000125794.jpg":"chronicles/venezia"},
@@ -375,9 +375,9 @@ const series = [
   {
     slug: "night-lights",
     type: "chapter",
-    homepageText: "photographs grouped by what they were noticing.",
     title: "night lights",
     meta: "digital • 35mm",
+    homepageText: "photographs grouped by what they were noticing.",
     selectedPhotos: ["DSCF2014.jpg","DSCF2021.jpg","DSCF2108.jpg","DSCF2117.jpg","DSCF2131.jpg","DSCF2219.jpg","DSCF2549.jpg","DSCF2556.jpg","4AF441ED-277D-4877-B982-3E69333229C5-1_ALL_454.jpg"],
     photoFolders: {"DSCF2014.jpg":"chronicles/japan","DSCF2021.jpg":"chronicles/japan","DSCF2108.jpg":"chronicles/japan","DSCF2117.jpg":"chronicles/japan","DSCF2131.jpg":"chronicles/japan","DSCF2219.jpg":"chronicles/japan","DSCF2549.jpg":"chronicles/japan","DSCF2556.jpg":"chronicles/japan"},
     folder: "chronicles/japan",
@@ -396,9 +396,9 @@ const series = [
   {
     slug: "traces-of-time",
     type: "chapter",
-    homepageText: "photographs grouped by what they were noticing.",
     title: "traces of time",
     meta: "digital",
+    homepageText: "photographs grouped by what they were noticing.",
     folder: "chronicles/traces-of-time",
     photos: [
       "1000076209.jpg",
@@ -407,9 +407,9 @@ const series = [
   {
     slug: "traces-of-time",
     type: "chapter",
-    homepageText: "photographs grouped by what they were noticing.",
     title: "traces of time",
     meta: "digital",
+    homepageText: "photographs grouped by what they were noticing.",
     folder: "chronicles/traces-of-time",
     photos: [
       "1000076209.jpg",
