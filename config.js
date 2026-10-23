@@ -361,7 +361,6 @@ const series = [
     type: "chapter",
     title: "sand and water",
     meta: "digital • 35mm",
-    homepageText: "photographs grouped by what they were noticing.",
     selectedPhotos: ["DSCF1872.jpg","1000125763.jpg","1000125794.jpg","1000117394.jpg"],
     contactSheetPhotos: ["1000125763.jpg","1000125794.jpg"],
     photoFolders: {"1000125763.jpg":"chronicles/venezia","1000125794.jpg":"chronicles/venezia"},
