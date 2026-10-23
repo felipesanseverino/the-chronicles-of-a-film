@@ -395,7 +395,6 @@ const series = [
     type: "chapter",
     title: "traces of time",
     meta: "digital",
-    homepageText: "photographs grouped by what they were noticing.",
     folder: "chronicles/traces-of-time",
     photos: [
       "1000076209.jpg",
