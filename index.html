@@ -647,8 +647,8 @@
       homepageText: item.homepageText || "",
       meta: item.meta ? item.meta.toLowerCase() : "digital",
       folder: item.folder,
-      photo: displayPhotos[index % displayPhotos.length],
-      photos: displayPhotos,
+      photo: item.homepageCover || displayPhotos[index % displayPhotos.length],
+      photos: item.homepageCover ? [item.homepageCover, ...displayPhotos.filter(photo => photo !== item.homepageCover)] : displayPhotos,
       photoFolders: item.photoFolders || {},
       count: fallbackPhotos.length
     };
