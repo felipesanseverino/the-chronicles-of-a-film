@@ -703,7 +703,7 @@
         .replace(/\s*more info about the project here:.*/i, "")
         .trim();
     }
-    const heroPhoto = chapter.photos[1] || chapter.photos[0];
+    const heroPhoto = chapter.pageCover || chapter.photos[1] || chapter.photos[0];
     const heroImage = document.getElementById("hero-image");
     heroImage.src = imageUrl(chapter, heroPhoto, 1800);
     addLightboxPhoto({
