@@ -216,7 +216,6 @@ const series = [
     type: "chapter",
     title: "at anchor",
     meta: "digital · 35mm",
-    homepageText: "a chapter arranged by light, gesture, and echo.",
     description: "boats, masts, water, and the quiet weight of things held in place.",
     folder: "chronicles/sail-amsterdam",
     photos: [
