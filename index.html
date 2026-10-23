@@ -644,6 +644,7 @@
       slug: item.slug,
       type: item.type || "archive",
       title: item.title.toLowerCase(),
+      homepageText: item.homepageText || "",
       meta: item.meta ? item.meta.toLowerCase() : "digital",
       folder: item.folder,
       photo: displayPhotos[index % displayPhotos.length],
@@ -720,9 +721,10 @@
       <div class="chapter-overlay">
         <div class="chapter-title"><span>${item.title}</span></div>
         <div class="photo-meta">${item.meta}</div>
-        <p>${index === 0 ? "sharing the city, beyond the city, sand and water." : index === 1 ? "a chapter arranged by light, gesture, and echo." : "photographs grouped by what they were noticing."}</p>
+        <p></p>
       </div>
     `;
+    link.querySelector(".chapter-overlay p").textContent = item.homepageText || "";
     attachImageFallback(link.querySelector(".chapter-photo"), item, 1100, "c_fill,ar_4:3");
     chapterList.appendChild(link);
   });

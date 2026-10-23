@@ -42,6 +42,7 @@ const els = {
   slug: document.getElementById("slug"),
   meta: document.getElementById("meta"),
   sourceFolder: document.getElementById("sourceFolder"),
+  homepageText: document.getElementById("homepageText"),
   description: document.getElementById("description"),
   essayNote: document.getElementById("essayNote"),
   closingText: document.getElementById("closingText"),
@@ -768,6 +769,7 @@ function fillFromSeries() {
   els.meta.value = s.meta || "";
   els.sourceFolder.value = s.folder || "";
   state.chapterSourceFolder = s.folder || "";
+  els.homepageText.value = s.homepageText || "";
   els.description.value = s.description || "";
   els.essayNote.value = s.essayNote || "";
   els.closingText.value = s.closingText || "";
@@ -799,6 +801,7 @@ function setMode(mode) {
     els.contentType.value = "archive";
     updateSiteControlLabels();
     els.sourceFolder.value = "";
+    els.homepageText.value = "";
     els.essayNote.value = "";
     els.closingText.value = "";
     els.selectedPhotos.value = "";
@@ -1052,6 +1055,7 @@ async function publish() {
   const slug = slugify(els.slug.value.trim() || title);
   const meta = els.meta.value.trim();
   const sourceFolder = els.sourceFolder.value.trim();
+  const homepageText = els.homepageText.value.trim();
   const description = els.description.value.trim();
   const essayNote = els.essayNote.value.trim();
   const closingText = els.closingText.value.trim();
@@ -1092,6 +1096,7 @@ async function publish() {
     type,
     title,
     meta,
+    homepageText,
     description,
     essayNote,
     closingText,
