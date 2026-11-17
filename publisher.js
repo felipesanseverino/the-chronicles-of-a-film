@@ -22,7 +22,7 @@ const state = {
   },
 };
 
-const CLOUDINARY_BASE_URL = "https://res.cloudinary.com/dttbzi3he/image/upload";
+const CLOUDINARY_BASE_URL = "https://res.cloudinary.com/qbltvpn7/image/upload";
 const QUEUE_STORAGE_KEY = "tcofStudioInstagramQueue";
 const AUTO_QUEUE_STORAGE_KEY = "tcofStudioAutoQueue";
 const captionSaveTimers = new Map();

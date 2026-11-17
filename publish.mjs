@@ -42,7 +42,7 @@ try {
 }
 
 const CLOUDINARY_CONFIG = {
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dttbzi3he',
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'qbltvpn7',
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 };
@@ -141,7 +141,7 @@ function readConfig() {
 
 function writeConfig(series) {
   const lines = [
-    'const CLOUDINARY_BASE = "https://res.cloudinary.com/dttbzi3he/image/upload";',
+    'const CLOUDINARY_BASE = "https://res.cloudinary.com/qbltvpn7/image/upload";',
     '',
     'const series = [',
   ];

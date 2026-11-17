@@ -185,7 +185,7 @@ function readSeries(configSource: string): Series[] {
 
 function writeConfig(series: Series[]) {
   const lines = [
-    'const CLOUDINARY_BASE = "https://res.cloudinary.com/dttbzi3he/image/upload";',
+    'const CLOUDINARY_BASE = "https://res.cloudinary.com/qbltvpn7/image/upload";',
     "",
     "const series = [",
   ];

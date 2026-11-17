@@ -50,7 +50,7 @@ function getCloudinary() {
   }
 
   const config = {
-    cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'dttbzi3he',
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME || 'qbltvpn7',
     api_key: process.env.CLOUDINARY_API_KEY,
     api_secret: process.env.CLOUDINARY_API_SECRET,
   };
@@ -101,7 +101,7 @@ function readRemoteConfig() {
 }
 
 function writeConfig(series) {
-  const lines = ['const CLOUDINARY_BASE = "https://res.cloudinary.com/dttbzi3he/image/upload";', '', 'const series = ['];
+  const lines = ['const CLOUDINARY_BASE = "https://res.cloudinary.com/qbltvpn7/image/upload";', '', 'const series = ['];
   series.forEach((s, i) => {
     lines.push('  {');
     lines.push(`    slug: ${JSON.stringify(s.slug)},`);
@@ -1212,7 +1212,7 @@ function renderSidebar() {
   const el = document.getElementById('series-list');
   el.innerHTML = state.series.map(s => {
     const thumb = s.photos.length
-      ? \`<img class="series-thumb" src="https://res.cloudinary.com/dttbzi3he/image/upload/f_auto,q_auto,w_88,h_60,c_fill/\${s.folder}/\${s.photos[0]}" onerror="this.style.display='none'">\`
+      ? \`<img class="series-thumb" src="https://res.cloudinary.com/qbltvpn7/image/upload/f_auto,q_auto,w_88,h_60,c_fill/\${s.folder}/\${s.photos[0]}" onerror="this.style.display='none'">\`
       : '<div class="series-thumb-empty"></div>';
     return \`<div class="series-row \${state.active === s.slug ? 'active' : ''}" data-slug="\${s.slug}" onclick="selectSeries('\${s.slug}')">
       \${thumb}
@@ -1372,7 +1372,7 @@ function renderForm(s) {
 function renderCloudinaryPhotos(s) {
   const area = document.getElementById('photo-area');
   if (!area) return;
-  const BASE = 'https://res.cloudinary.com/dttbzi3he/image/upload/f_auto,q_auto,w_220,h_220,c_fill';
+  const BASE = 'https://res.cloudinary.com/qbltvpn7/image/upload/f_auto,q_auto,w_220,h_220,c_fill';
   area.innerHTML = \`
     <p class="photo-count" id="cloud-count">\${s.photos.length} photos on cloudinary — hover to remove</p>
     <div class="photo-grid" id="cloud-grid">
@@ -1382,7 +1382,7 @@ function renderCloudinaryPhotos(s) {
 }
 
 function cloudPhotoCell(p, folder, BASE) {
-  BASE = BASE || 'https://res.cloudinary.com/dttbzi3he/image/upload/f_auto,q_auto,w_220,h_220,c_fill';
+  BASE = BASE || 'https://res.cloudinary.com/qbltvpn7/image/upload/f_auto,q_auto,w_220,h_220,c_fill';
   const s = state.series.find(x => x.slug === state.active);
   const f = (s && s.folder) ? s.folder : folder;
   return \`<div class="photo-cell \${state.hero === p ? 'hero' : ''}" id="cell-\${p}" title="\${p}" onclick="setCloudHero('\${p}')">
